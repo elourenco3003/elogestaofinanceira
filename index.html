@@ -179,6 +179,22 @@
   .periodo .fld{margin-top:0;}
   .periodo .in{width:100%;min-width:0;font-size:15px;padding:7px 8px;}
   .periodo-limpar{width:100%;margin-top:10px;}
+  .campo-data{width:100%;font-family:inherit;font-size:15px;padding:9px 10px;border:1px solid var(--field-border);
+    border-radius:8px;background:#fff;color:var(--result-text);text-align:left;cursor:pointer;font-variant-numeric:tabular-nums;}
+  .campo-data.vazio{color:#9aa4b2;}
+
+  /* ===== Seletor de data por rolagem ===== */
+  .roda{position:relative;display:grid;grid-template-columns:.8fr 1.4fr 1fr;gap:6px;height:210px;overflow:hidden;
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;}
+  .roda-faixa{position:absolute;left:6px;right:6px;top:50%;height:42px;transform:translateY(-50%);
+    background:#e3eafc;border-radius:9px;pointer-events:none;z-index:0;}
+  .roda-col{position:relative;z-index:1;overflow-y:auto;scroll-snap-type:y mandatory;text-align:center;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .roda-col::-webkit-scrollbar{display:none;}
+  .roda-item{height:42px;line-height:42px;scroll-snap-align:center;font-size:1.02rem;color:#8a93a0;
+    font-variant-numeric:tabular-nums;transition:color .15s,font-weight .15s;}
+  .roda-item.sel{color:var(--accent);font-weight:800;font-size:1.1rem;}
+  .roda-espaco{height:84px;}
   .filtro .in{flex:1;min-width:0;font-size:15px;padding:6px 8px;}
   .filtro .lig{color:var(--muted);font-size:.8rem;flex:0 0 auto;}
   .sub{font-size:.78rem;color:#64748b;margin:9px 0 0;line-height:1.45;}
@@ -218,16 +234,21 @@
   .hero-mini .destaque{background:rgba(255,120,120,.32);}
 
   .secao{font-size:1.02rem;font-weight:700;margin:0 0 10px;color:var(--result-text);}
-  .grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:6px;}
-  .atalho-card{background:#fff;border:1px solid #e6eaf1;border-radius:13px;padding:10px 11px;cursor:pointer;
+  .inicio{flex:1 1 auto;min-height:0;min-width:0;display:flex;flex-direction:column;
+    max-width:var(--col);width:100%;margin:0 auto;overflow:hidden;}
+  .grade{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;
+    grid-auto-rows:1fr;gap:10px;padding-bottom:2px;}
+  @media (min-width:1024px){ .grade{grid-template-columns:repeat(3,1fr);} }
+  .atalho-card{background:#fff;border:1px solid #e6eaf1;border-radius:14px;padding:13px;cursor:pointer;
     box-shadow:0 1px 3px rgba(16,24,40,.05);transition:transform .12s ease,box-shadow .12s ease;text-align:left;
-    font-family:inherit;width:100%;min-width:0;display:flex;align-items:center;gap:11px;}
+    font-family:inherit;width:100%;min-width:0;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:9px;}
   .atalho-card:active{transform:scale(.985);box-shadow:0 1px 2px rgba(16,24,40,.08);}
-  .atalho-card > div.txt{min-width:0;flex:1;}
-  .atalho-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
-  .atalho-ic svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-  .atalho-card h4{margin:0;font-size:.94rem;font-weight:700;color:var(--result-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .atalho-card p{margin:2px 0 0;font-size:.76rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .atalho-card > div.txt{min-width:0;}
+  .atalho-ic{width:clamp(36px,11vw,46px);height:clamp(36px,11vw,46px);border-radius:12px;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .atalho-ic svg{width:52%;height:52%;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .atalho-card h4{margin:0;font-size:1.02rem;font-weight:700;color:var(--result-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .atalho-card p{margin:3px 0 0;font-size:.8rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .ic-azul{background:#e8edfb;color:var(--accent);} .ic-verde{background:#dcfce7;color:var(--ok);}
   .ic-vermelho{background:#fee2e2;color:var(--bad);} .ic-ambar{background:#fef3c7;color:var(--warn);}
   .ic-roxo{background:#ede9fe;color:#6d28d9;}      .ic-cinza{background:#eef2f7;color:#475569;}
@@ -504,7 +525,7 @@
   <main>
     <!-- VISÃO GERAL -->
     <section class="view active" id="v-geral">
-      <div class="scroller">
+      <div class="inicio">
         <div class="saudacao"><span id="saudacao-hora">Olá</span><b id="saudacao-nome">—</b></div>
 
         <div class="hero" onclick="irParaDevedores()">
@@ -554,8 +575,12 @@
       <div class="scroller">
         <div class="form-panel periodo">
           <div class="periodo-campos">
-            <div><label class="fld">De</label><input class="in" type="date" id="filtro-data-ini" onchange="atualizarTelas()"></div>
-            <div><label class="fld">Até</label><input class="in" type="date" id="filtro-data-fim" onchange="atualizarTelas()"></div>
+            <div><label class="fld">De</label>
+              <button class="campo-data" id="btn-data-ini" onclick="abrirRoda('ini')">Escolher</button>
+              <input type="hidden" id="filtro-data-ini"></div>
+            <div><label class="fld">Até</label>
+              <button class="campo-data" id="btn-data-fim" onclick="abrirRoda('fim')">Escolher</button>
+              <input type="hidden" id="filtro-data-fim"></div>
           </div>
           <button class="btn-sm periodo-limpar" onclick="limparFiltro()">Limpar período</button>
         </div>
@@ -897,6 +922,24 @@
     <div class="modal__foot">
       <button class="btn btn-ghost" onclick="fecharModais()">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarAtivo()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalData">
+  <div class="modal">
+    <div class="modal__head"><h2 id="data-titulo">Escolher data</h2><button class="modal__close" onclick="fecharModais()">×</button></div>
+    <div class="modal__body">
+      <div class="roda">
+        <div class="roda-faixa"></div>
+        <div class="roda-col" id="roda-dia"></div>
+        <div class="roda-col" id="roda-mes"></div>
+        <div class="roda-col" id="roda-ano"></div>
+      </div>
+    </div>
+    <div class="modal__foot">
+      <button class="btn btn-ghost" onclick="fecharModais()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarRoda()">Confirmar</button>
     </div>
   </div>
 </div>
@@ -1384,7 +1427,97 @@ async function salvarPatrimonioInicial(){
   toast('Base atualizada.', 'ok');
 }
 
-function limparFiltro(){ $('filtro-data-ini').value = ''; $('filtro-data-fim').value = ''; atualizarTelas(); }
+
+/* =========================================================================
+   SELETOR DE DATA POR ROLAGEM (dia · mês · ano)
+   ========================================================================= */
+const MESES_NOME = ['janeiro','fevereiro','março','abril','maio','junho',
+                    'julho','agosto','setembro','outubro','novembro','dezembro'];
+const ALTURA_ITEM = 42;
+let rodaAlvo = null;
+
+function montaColuna(el, valores, rotulos, selecionado){
+  el.innerHTML = '<div class="roda-espaco"></div>' +
+    valores.map((v,i) => `<div class="roda-item" data-v="${v}">${rotulos[i]}</div>`).join('') +
+    '<div class="roda-espaco"></div>';
+  const idx = Math.max(0, valores.indexOf(selecionado));
+  el.scrollTop = idx * ALTURA_ITEM;
+  marcaSelecionado(el);
+}
+function marcaSelecionado(el){
+  const idx = Math.round(el.scrollTop / ALTURA_ITEM);
+  [...el.querySelectorAll('.roda-item')].forEach((it,i) => it.classList.toggle('sel', i === idx));
+}
+function valorColuna(el){
+  const itens = [...el.querySelectorAll('.roda-item')];
+  const idx = Math.max(0, Math.min(itens.length - 1, Math.round(el.scrollTop / ALTURA_ITEM)));
+  return itens.length ? Number(itens[idx].dataset.v) : null;
+}
+
+function abrirRoda(qual){
+  rodaAlvo = qual;
+  $('data-titulo').textContent = qual === 'ini' ? 'Data inicial' : 'Data final';
+
+  const atual = $(qual === 'ini' ? 'filtro-data-ini' : 'filtro-data-fim').value;
+  const base = atual ? atual.split('-').map(Number) : (() => { const h = new Date();
+    return [h.getFullYear(), h.getMonth() + 1, h.getDate()]; })();
+
+  const anoHoje = new Date().getFullYear();
+  const anos = []; for(let a = anoHoje - 6; a <= anoHoje + 1; a++) anos.push(a);
+
+  montaColuna($('roda-mes'), [1,2,3,4,5,6,7,8,9,10,11,12], MESES_NOME, base[1]);
+  montaColuna($('roda-ano'), anos, anos.map(String), base[0]);
+  redesenhaDias(base[2]);
+
+  fecharModais();
+  abrirModal('modalData');
+}
+
+function redesenhaDias(diaDesejado){
+  const mes = valorColuna($('roda-mes')) || 1;
+  const ano = valorColuna($('roda-ano')) || new Date().getFullYear();
+  const qtd = new Date(ano, mes, 0).getDate();
+  const dias = []; for(let d = 1; d <= qtd; d++) dias.push(d);
+  const escolhido = Math.min(diaDesejado || valorColuna($('roda-dia')) || 1, qtd);
+  montaColuna($('roda-dia'), dias, dias.map(d => String(d).padStart(2,'0')), escolhido);
+}
+
+['roda-dia','roda-mes','roda-ano'].forEach(id => {
+  const el = $(id);
+  let t;
+  el.addEventListener('scroll', () => {
+    marcaSelecionado(el);
+    clearTimeout(t);
+    t = setTimeout(() => { if(id !== 'roda-dia') redesenhaDias(); }, 140);
+  }, { passive:true });
+});
+
+function confirmarRoda(){
+  const d = valorColuna($('roda-dia')), m = valorColuna($('roda-mes')), a = valorColuna($('roda-ano'));
+  if(!d || !m || !a) return;
+  const iso = `${a}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  $(rodaAlvo === 'ini' ? 'filtro-data-ini' : 'filtro-data-fim').value = iso;
+
+  const ini = $('filtro-data-ini').value, fim = $('filtro-data-fim').value;
+  if(ini && fim && ini > fim){
+    if(rodaAlvo === 'ini') $('filtro-data-fim').value = iso; else $('filtro-data-ini').value = iso;
+    toast('Datas ajustadas: o início não pode ser depois do fim.');
+  }
+  fecharModais();
+  mostrarDatasFiltro();
+  atualizarTelas();
+}
+
+function mostrarDatasFiltro(){
+  [['ini','btn-data-ini'],['fim','btn-data-fim']].forEach(([q, btn]) => {
+    const v = $(q === 'ini' ? 'filtro-data-ini' : 'filtro-data-fim').value;
+    const b = $(btn);
+    b.textContent = v ? formatDate(v) : 'Escolher';
+    b.className = 'campo-data' + (v ? '' : ' vazio');
+  });
+}
+
+function limparFiltro(){ $('filtro-data-ini').value = ''; $('filtro-data-fim').value = ''; mostrarDatasFiltro(); atualizarTelas(); }
 
 /* ===== Configurações ===== */
 function carregarConfigTela(){
@@ -2443,6 +2576,7 @@ function atualizarTelas(){
   atualizarGraficoPizza(labels, dados);
   atualizarGraficoEvolucao();
 
+  mostrarDatasFiltro();
   requestAnimationFrame(repaginarTudo);
 }
 </script>
