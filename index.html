@@ -59,12 +59,12 @@
   /* ===== Estrutura ===== */
   .shell{flex:1 1 auto;min-height:0;display:flex;position:relative;}
   main{flex:1 1 auto;min-width:0;min-height:0;position:relative;}
-  .view{position:absolute;inset:0;display:none;flex-direction:column;padding:10px 12px;overflow:hidden;}
+  .view{position:absolute;inset:0;display:none;flex-direction:column;padding:10px 12px;overflow:hidden;min-width:0;}
   .view.active{display:flex;}
   .view-head{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
   .view-head h2{font-size:1.02rem;margin:0;color:var(--result-label);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .view-head,.list,.pane,.tabs,.scroller{max-width:var(--col);width:100%;margin-left:auto;margin-right:auto;}
-  .scroller{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px;}
+  .scroller{flex:1 1 auto;min-width:0;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-right:2px;}
   .stack{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
 
   /* ===== Menu lateral ===== */
@@ -136,11 +136,11 @@
   .val > span:first-child{color:var(--muted);font-weight:600;}
 
   /* ===== KPIs ===== */
-  .kpis{flex:0 0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:9px;margin-bottom:10px;}
-  .kpi{background:#fff;border:1px solid var(--border);border-radius:11px;padding:10px 12px 11px;position:relative;overflow:hidden;}
+  .kpis{flex:0 0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px;margin-bottom:10px;min-width:0;}
+  .kpi{background:#fff;border:1px solid var(--border);border-radius:11px;padding:10px 12px 11px;position:relative;overflow:hidden;min-width:0;}
   .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--k,#94a3b8);}
   .kpi .k-lbl{font-size:.76rem;color:#64748b;font-weight:600;margin-bottom:5px;}
-  .kpi .k-val{font-size:1.14rem;font-weight:800;color:var(--k-txt,var(--result-text));}
+  .kpi .k-val{font-size:1.14rem;font-weight:800;color:var(--k-txt,var(--result-text));overflow:hidden;text-overflow:ellipsis;}
   .k-pat{--k:#6d28d9;--k-txt:#6d28d9;} .k-fat{--k:var(--accent);--k-txt:var(--accent);}
   .k-cmv{--k:var(--bad);--k-txt:var(--bad);} .k-luc{--k:var(--ok);--k-txt:var(--ok);}
   .k-rec{--k:var(--warn);--k-txt:var(--warn);}
@@ -169,10 +169,16 @@
   .empty{color:#94a3b8;font-size:.85rem;text-align:center;margin:24px 8px;}
 
   /* ===== Painéis ===== */
-  .pane{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;}
+  .pane{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;min-width:0;overflow:hidden;}
   .pane h3{margin:0 0 10px;font-size:.95rem;color:var(--result-label);}
   .form-panel{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:9px;flex:0 0 auto;}
   .filtro{display:flex;align-items:center;gap:8px;}
+  .periodo{min-width:0;}
+  .periodo-campos{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0;}
+  .periodo-campos > div{min-width:0;}
+  .periodo .fld{margin-top:0;}
+  .periodo .in{width:100%;min-width:0;font-size:15px;padding:7px 8px;}
+  .periodo-limpar{width:100%;margin-top:10px;}
   .filtro .in{flex:1;min-width:0;font-size:15px;padding:6px 8px;}
   .filtro .lig{color:var(--muted);font-size:.8rem;flex:0 0 auto;}
   .sub{font-size:.78rem;color:#64748b;margin:9px 0 0;line-height:1.45;}
@@ -196,31 +202,32 @@
   /* ===== Início: saudação, cartão principal e acesso rápido ===== */
   .saudacao{margin:0 0 10px;}
   .saudacao span{display:block;font-size:.86rem;color:#64748b;}
-  .saudacao b{display:block;font-size:1.5rem;letter-spacing:.01em;color:var(--result-text);text-transform:uppercase;}
+  .saudacao b{display:block;font-size:1.35rem;letter-spacing:.01em;color:var(--result-text);text-transform:uppercase;}
 
   .hero{position:relative;overflow:hidden;border-radius:16px;padding:16px 16px 14px;margin-bottom:16px;
     background:linear-gradient(125deg,#2a4fb0 0%,#23459c 45%,#4c35c9 100%);color:#fff;cursor:pointer;}
   .hero::after{content:"";position:absolute;right:-60px;top:-70px;width:230px;height:230px;border-radius:50%;
     background:rgba(255,255,255,.08);}
   .hero-lbl{font-size:.92rem;opacity:.88;position:relative;}
-  .hero-val{font-size:2.1rem;font-weight:800;line-height:1.1;margin:2px 0 1px;font-variant-numeric:tabular-nums;position:relative;}
+  .hero-val{font-size:1.95rem;font-weight:800;line-height:1.1;margin:2px 0 1px;font-variant-numeric:tabular-nums;position:relative;}
   .hero-sub{font-size:.85rem;opacity:.8;position:relative;}
   .hero-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px;position:relative;}
-  .hero-mini > div{background:rgba(255,255,255,.15);border-radius:12px;padding:10px 12px;}
-  .hero-mini b{display:block;font-size:1.3rem;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;}
+  .hero-mini > div{background:rgba(255,255,255,.15);border-radius:11px;padding:8px 10px;}
+  .hero-mini b{display:block;font-size:1.18rem;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;}
   .hero-mini span{font-size:.78rem;opacity:.85;}
   .hero-mini .destaque{background:rgba(255,120,120,.32);}
 
   .secao{font-size:1.02rem;font-weight:700;margin:0 0 10px;color:var(--result-text);}
   .grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:6px;}
-  .atalho-card{background:#fff;border:1px solid #e6eaf1;border-radius:14px;padding:13px;cursor:pointer;
+  .atalho-card{background:#fff;border:1px solid #e6eaf1;border-radius:13px;padding:10px 11px;cursor:pointer;
     box-shadow:0 1px 3px rgba(16,24,40,.05);transition:transform .12s ease,box-shadow .12s ease;text-align:left;
-    font-family:inherit;display:block;width:100%;}
+    font-family:inherit;width:100%;min-width:0;display:flex;align-items:center;gap:11px;}
   .atalho-card:active{transform:scale(.985);box-shadow:0 1px 2px rgba(16,24,40,.08);}
-  .atalho-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
-  .atalho-ic svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-  .atalho-card h4{margin:0;font-size:1.02rem;font-weight:700;color:var(--result-text);}
-  .atalho-card p{margin:5px 0 0;font-size:.84rem;color:#64748b;}
+  .atalho-card > div.txt{min-width:0;flex:1;}
+  .atalho-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .atalho-ic svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .atalho-card h4{margin:0;font-size:.94rem;font-weight:700;color:var(--result-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .atalho-card p{margin:2px 0 0;font-size:.76rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .ic-azul{background:#e8edfb;color:var(--accent);} .ic-verde{background:#dcfce7;color:var(--ok);}
   .ic-vermelho{background:#fee2e2;color:var(--bad);} .ic-ambar{background:#fef3c7;color:var(--warn);}
   .ic-roxo{background:#ede9fe;color:#6d28d9;}      .ic-cinza{background:#eef2f7;color:#475569;}
@@ -515,28 +522,28 @@
         <div class="grade">
           <button class="atalho-card" onclick="abrirView('v-vendas'); irTela('vpVendas',0)">
             <div class="atalho-ic ic-azul"><svg><use href="#ic-cart"/></svg></div>
-            <h4>Vendas</h4><p id="at-vendas">—</p>
+            <div class="txt"><h4>Vendas</h4><p id="at-vendas">—</p></div>
           </button>
           <button class="atalho-card" onclick="abrirView('v-vendas'); irTela('vpVendas',1)">
             <div class="atalho-ic ic-verde"><svg><use href="#ic-in"/></svg></div>
-            <h4>A receber</h4><p id="at-receber">—</p>
+            <div class="txt"><h4>A receber</h4><p id="at-receber">—</p></div>
           </button>
           <button class="atalho-card" onclick="irParaDevedores()">
             <div class="atalho-ic ic-vermelho"><svg><use href="#ic-alerta"/></svg></div>
-            <h4>Devedores</h4><p id="at-devedores">—</p>
+            <div class="txt"><h4>Devedores</h4><p id="at-devedores">—</p></div>
           </button>
           <button class="atalho-card" onclick="abrirView('v-patrimonio'); irTela('vpPat',1)">
             <div class="atalho-ic ic-ambar"><svg><use href="#ic-bank"/></svg></div>
-            <h4>Contas</h4><p id="at-contas">—</p>
+            <div class="txt"><h4>Contas</h4><p id="at-contas">—</p></div>
           </button>
           <button class="atalho-card" onclick="abrirView('v-patrimonio'); irTela('vpPat',2)">
             <div class="atalho-ic ic-roxo"><svg><use href="#ic-wallet"/></svg></div>
-            <h4>Carteira</h4><p id="at-carteira">—</p>
+            <div class="txt"><h4>Carteira</h4><p id="at-carteira">—</p></div>
           </button>
 
           <button class="atalho-card" onclick="abrirView('v-resultado')">
             <div class="atalho-ic ic-cinza"><svg><use href="#ic-chart"/></svg></div>
-            <h4>Resultado</h4><p id="at-resultado">—</p>
+            <div class="txt"><h4>Resultado</h4><p id="at-resultado">—</p></div>
           </button>
         </div>
       </div>
@@ -545,11 +552,12 @@
     <!-- RESULTADO -->
     <section class="view" id="v-resultado">
       <div class="scroller">
-        <div class="form-panel filtro">
-          <input class="in" type="date" id="filtro-data-ini" onchange="atualizarTelas()">
-          <span class="lig">até</span>
-          <input class="in" type="date" id="filtro-data-fim" onchange="atualizarTelas()">
-          <button class="btn-sm" onclick="limparFiltro()">Limpar</button>
+        <div class="form-panel periodo">
+          <div class="periodo-campos">
+            <div><label class="fld">De</label><input class="in" type="date" id="filtro-data-ini" onchange="atualizarTelas()"></div>
+            <div><label class="fld">Até</label><input class="in" type="date" id="filtro-data-fim" onchange="atualizarTelas()"></div>
+          </div>
+          <button class="btn-sm periodo-limpar" onclick="limparFiltro()">Limpar período</button>
         </div>
 
         <div class="kpis">
@@ -624,8 +632,8 @@
             </div>
 
             <div class="screen">
-              <div class="form-panel filtro">
-                <span class="lig" style="font-weight:600">Mês</span>
+              <div class="form-panel periodo">
+                <label class="fld" style="margin-top:0">Mês de referência</label>
                 <input class="in" type="month" id="mes-receber" onchange="renderizarReceberMes()">
               </div>
               <div class="kpis" style="grid-template-columns:1fr 1fr">
