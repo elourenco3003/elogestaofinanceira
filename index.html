@@ -746,8 +746,14 @@
     <section class="view" id="v-lic">
       <div class="scroller">
         <div class="pane" style="margin-bottom:9px">
-          <h3>Conceder ou renovar acesso</h3>
-          <label class="fld">E-mail da pessoa</label>
+          <h3>Liberar acesso</h3>
+          <div class="periodo-campos">
+            <div><label class="fld">Nome</label><input class="in" id="lic-nome" placeholder="Eduardo"></div>
+            <div><label class="fld">Sobrenome</label><input class="in" id="lic-sobrenome" placeholder="Lourenço"></div>
+          </div>
+          <label class="fld">Contato</label>
+          <input class="in" id="lic-telefone" inputmode="tel" placeholder="(22) 99236-9975" onkeyup="mascaraTelefone(this)">
+          <label class="fld">E-mail</label>
           <input class="in" type="email" id="lic-email" placeholder="email@exemplo.com">
           <label class="fld">Plano</label>
           <select class="in" id="lic-plano">
@@ -765,6 +771,19 @@
     <!-- CONFIGURAÇÕES -->
     <section class="view" id="v-config">
       <div class="scroller">
+        <div class="pane" style="margin-bottom:9px">
+          <h3>Seus dados</h3>
+          <div class="periodo-campos">
+            <div><label class="fld">Nome</label><input class="in" id="cfg-nome" placeholder="Eduardo"></div>
+            <div><label class="fld">Sobrenome</label><input class="in" id="cfg-sobrenome" placeholder="Lourenço"></div>
+          </div>
+          <label class="fld">Contato</label>
+          <input class="in" id="cfg-telefone" inputmode="tel" placeholder="(22) 99236-9975" onkeyup="mascaraTelefone(this)">
+          <label class="fld">E-mail</label>
+          <input class="in" id="cfg-email" disabled>
+          <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="salvarPerfil()">Salvar dados</button>
+          <p class="sub">Na saudação da tela inicial aparece só o primeiro nome.</p>
+        </div>
         <div class="pane" style="margin-bottom:9px">
           <h3>Chave PIX do recibo</h3>
           <label class="fld">Chave PIX</label>
@@ -980,6 +999,8 @@ let hojeInicialStr = `${hojeInicial.getFullYear()}-${String(hojeInicial.getMonth
 
 let configRentabilidade = { data: hojeInicialStr, valor: 0.00 };
 let pixConfig = { chave:'', nome:'' };
+let perfil = { nome:'', sobrenome:'', telefone:'' };
+let emailUsuario = '';
 let usuarioId = null;
 let ehAdmin = false;
 
@@ -1260,10 +1281,10 @@ getDbClient().auth.onAuthStateChange((event, session) => {
     usuarioId = session.user.id;
     ehAdmin = (session.user.email || '').toLowerCase() === EMAIL_ADMIN;
     $('nav-admin').style.display = ehAdmin ? 'flex' : 'none';
-    $('drawerUser').innerHTML = `<b>${esc((session.user.email||'').split('@')[0])}</b>${esc(session.user.email||'')}`;
+    emailUsuario = session.user.email || '';
     const h = new Date().getHours();
     $('saudacao-hora').textContent = h < 12 ? 'Bom dia' : (h < 18 ? 'Boa tarde' : 'Boa noite');
-    $('saudacao-nome').textContent = (session.user.email || '').split('@')[0];
+    mostrarNome();
     if(modoRecuperacao) return;
     if(appJaCarregado){ $('authScreen').classList.add('hidden'); carregando(false); return; }
     iniciarApp();
@@ -1278,6 +1299,25 @@ window.onload = async function(){
   const { data } = await getDbClient().auth.getSession();
   if((!data || !data.session) && !modoRecuperacao){ mostrarView('login'); mostrarLogin(); }
 };
+
+function mascaraTelefone(el){
+  let d = el.value.replace(/\D/g,'').slice(0,11);
+  if(d.length > 6)      el.value = `(${d.slice(0,2)}) ${d.slice(2,d.length-4)}-${d.slice(-4)}`;
+  else if(d.length > 2) el.value = `(${d.slice(0,2)}) ${d.slice(2)}`;
+  else if(d.length)     el.value = `(${d}`;
+  else                  el.value = '';
+}
+
+function primeiroNome(){
+  const n = (perfil.nome || '').trim();
+  if(n) return n.split(/\s+/)[0];
+  return (emailUsuario.split('@')[0] || 'você');
+}
+function mostrarNome(){
+  const nome = primeiroNome();
+  const el = $('saudacao-nome'); if(el) el.textContent = nome;
+  const du = $('drawerUser'); if(du) du.innerHTML = `<b>${esc(nome)}</b>${esc(emailUsuario)}`;
+}
 
 /* =========================================================================
    CARGA DO BANCO
@@ -1304,6 +1344,8 @@ async function carregarDados(){
         configRentabilidade = { data: row.valor.data || hojeInicialStr, valor: parseFloat(row.valor.valor) || 0 };
       if(row.chave === 'pix' && row.valor)
         pixConfig = { chave: row.valor.chave || '', nome: row.valor.nome || '' };
+      if(row.chave === 'perfil' && row.valor)
+        perfil = { nome: row.valor.nome || '', sobrenome: row.valor.sobrenome || '', telefone: row.valor.telefone || '' };
     });
 
     contasManuais = (contasRes.data || []).map(c => ({ id: c.id, nome: c.nome, valor: parseFloat(c.saldo) }));
@@ -1330,6 +1372,7 @@ async function carregarDados(){
     carregando(false);
     statusBanco('conectado');
     await carregarHistorico();
+    mostrarNome();
     atualizarTelas();
   } catch(error){
     console.error(error);
@@ -1349,50 +1392,111 @@ async function renderLicencas(){
   const cont = $('lista-licencas');
   const { data, error } = await getDbClient().from('licencas').select('*').order('created_at', { ascending:false });
   if(error){ cont.innerHTML = `<div class="empty" style="color:var(--bad)">Erro ao carregar: ${esc(error.message)}</div>`; return; }
-  if(!data || !data.length){ cont.innerHTML = `<div class="empty">Nenhuma licença cadastrada ainda.</div>`; return; }
-  const hoje = new Date();
+  if(!data || !data.length){ cont.innerHTML = `<div class="empty">Nenhum usuário cadastrado ainda.</div>`; return; }
+
+  const agora = new Date();
   cont.innerHTML = data.map(l => {
-    const ativa = l.ativo && (!l.expira_em || new Date(l.expira_em) > hoje);
+    const ativa = l.ativo && (!l.expira_em || new Date(l.expira_em) > agora);
     const venc = l.expira_em ? ('expira em ' + formatDate(String(l.expira_em).split('T')[0])) : 'sem expiração';
     const principal = String(l.email).toLowerCase() === EMAIL_ADMIN;
+    const nomeCheio = [l.nome, l.sobrenome].filter(Boolean).join(' ') || '(sem nome)';
+    const eml = esc(l.email).replace(/'/g,"\\'");
+
     const chip = principal ? `<span class="chip roxo">Administrador</span>`
-               : ativa     ? `<span class="chip ok">Ativa</span>`
-                           : `<span class="chip venc">Inativa</span>`;
-    const acao = principal ? `<span class="chip neutro">protegida</span>`
-               : l.ativo   ? `<button class="btn-sm" style="color:var(--bad);border-color:#f0c2c2" onclick="revogarLicenca('${esc(l.email)}')">Revogar</button>`
-                           : `<button class="btn-sm" style="color:var(--ok);border-color:#a7d8bd" onclick="reativarLicenca('${esc(l.email)}')">Reativar</button>`;
+               : ativa     ? `<span class="chip ok">Liberado</span>`
+                           : `<span class="chip venc">Bloqueado</span>`;
+
+    const acoes = principal
+      ? `<span class="chip neutro">conta protegida</span>`
+      : `${l.ativo
+            ? `<button class="btn-sm" style="color:var(--warn);border-color:#efd08a" onclick="revogarLicenca('${eml}')">Bloquear</button>`
+            : `<button class="btn-sm" style="color:var(--ok);border-color:#a7d8bd" onclick="reativarLicenca('${eml}')">Liberar</button>`}
+         <button class="btn-sm" onclick="preencherLicenca('${eml}')">${ic('edit')}</button>
+         <button class="btn-sm" style="color:var(--bad);border-color:#f0c2c2" onclick="excluirUsuario('${eml}')">Excluir</button>`;
+
     return `<div class="card-item">
-      <div class="card-top" style="border:none;padding:0">
-        <div><h3>${esc(l.email)}</h3><div class="meta">${PLANO_LABEL[l.plano] || esc(l.plano)} · ${venc}</div></div>
+      <div class="card-top">
+        <div><h3>${esc(nomeCheio)}</h3><div class="meta">${esc(l.email)}</div></div>
         ${chip}
       </div>
-      <div class="card-actions">${acao}</div>
+      <div class="meta" style="margin-top:7px">
+        ${l.telefone ? esc(l.telefone) + ' · ' : ''}${PLANO_LABEL[l.plano] || esc(l.plano)} · ${venc}
+      </div>
+      <div class="card-actions">${acoes}</div>
     </div>`;
   }).join('');
+  licencasCache = data;
+}
+
+let licencasCache = [];
+function preencherLicenca(email){
+  const l = licencasCache.find(x => String(x.email).toLowerCase() === String(email).toLowerCase());
+  if(!l) return;
+  $('lic-nome').value      = l.nome || '';
+  $('lic-sobrenome').value = l.sobrenome || '';
+  $('lic-telefone').value  = l.telefone || '';
+  $('lic-email').value     = l.email;
+  $('lic-plano').value     = l.plano || '1m';
+  $('lic-nome').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+function limparFormLicenca(){
+  ['lic-nome','lic-sobrenome','lic-telefone','lic-email'].forEach(id => $(id).value = '');
+  $('lic-plano').value = '1m';
 }
 
 async function concederLicenca(){
-  const email = $('lic-email').value.trim().toLowerCase();
-  const plano = $('lic-plano').value;
+  const email     = $('lic-email').value.trim().toLowerCase();
+  const nome      = $('lic-nome').value.trim();
+  const sobrenome = $('lic-sobrenome').value.trim();
+  const telefone  = $('lic-telefone').value.trim();
+  const plano     = $('lic-plano').value;
   if(!email){ toast('Informe o e-mail da pessoa.', 'err'); return; }
+  if(!nome){  toast('Informe ao menos o nome.', 'err'); return; }
+
   carregando(true);
-  const { error } = await getDbClient().rpc('conceder_licenca', { p_email: email, p_plano: plano });
+  const { error } = await getDbClient().rpc('conceder_licenca', {
+    p_email: email, p_plano: plano, p_nome: nome, p_sobrenome: sobrenome, p_telefone: telefone
+  });
   carregando(false);
-  if(error){ toast('Erro ao conceder: ' + error.message, 'err'); return; }
-  $('lic-email').value = '';
-  toast('Acesso concedido para ' + email + '.', 'ok');
+  if(error){ toast('Erro ao liberar: ' + error.message, 'err'); return; }
+  limparFormLicenca();
+  toast('Acesso liberado para ' + nome + '.', 'ok');
   renderLicencas();
 }
+
 async function revogarLicenca(email){
-  if(!await confirmar('A pessoa perde o acesso na hora.', 'Revogar ' + email, 'Revogar', true)) return;
+  if(!await confirmar('A pessoa continua cadastrada, mas perde o acesso aos dados na hora. Dá para liberar de novo depois.',
+                      'Bloquear ' + email, 'Bloquear')) return;
+  carregando(true);
   const { error } = await getDbClient().rpc('revogar_licenca', { p_email: email });
-  if(error){ toast('Erro ao revogar: ' + error.message, 'err'); return; }
-  toast('Acesso revogado.', 'ok'); renderLicencas();
+  carregando(false);
+  if(error){ toast('Erro ao bloquear: ' + error.message, 'err'); return; }
+  toast('Acesso bloqueado.', 'ok'); renderLicencas();
 }
+
 async function reativarLicenca(email){
+  carregando(true);
   const { error } = await getDbClient().rpc('reativar_licenca', { p_email: email });
-  if(error){ toast('Erro ao reativar: ' + error.message, 'err'); return; }
-  toast('Acesso reativado.', 'ok'); renderLicencas();
+  carregando(false);
+  if(error){ toast('Erro ao liberar: ' + error.message, 'err'); return; }
+  toast('Acesso liberado.', 'ok'); renderLicencas();
+}
+
+async function excluirUsuario(email){
+  if(!await confirmar('Isso apaga o cadastro e a conta de acesso desta pessoa. Não tem como desfazer.',
+                      'Excluir ' + email, 'Excluir cadastro', true)) return;
+
+  const apagarDados = await confirmar('Quer apagar também as vendas, parcelas, contas e ativos lançados por ela? '
+    + 'Responder "Manter dados" apaga só a conta e deixa os registros no banco.',
+    'Dados desta pessoa', 'Apagar tudo', true);
+
+  carregando(true);
+  const { data, error } = await getDbClient().rpc('excluir_usuario', { p_email: email, p_apagar_dados: apagarDados });
+  carregando(false);
+  if(error){ toast('Erro ao excluir: ' + error.message, 'err'); return; }
+  const tinha = data && data.tinha_conta;
+  toast('Cadastro excluído' + (tinha ? ' junto com a conta de acesso.' : ' (não havia conta de acesso).'), 'ok');
+  renderLicencas();
 }
 
 /* =========================================================================
@@ -1521,11 +1625,34 @@ function limparFiltro(){ $('filtro-data-ini').value = ''; $('filtro-data-fim').v
 
 /* ===== Configurações ===== */
 function carregarConfigTela(){
+  $('cfg-nome').value      = perfil.nome || '';
+  $('cfg-sobrenome').value = perfil.sobrenome || '';
+  $('cfg-telefone').value  = perfil.telefone || '';
+  $('cfg-email').value     = emailUsuario;
   $('cfg-pix-chave').value = pixConfig.chave || '';
   $('cfg-pix-nome').value  = pixConfig.nome  || '';
   $('cfg-base-data').textContent = 'Base em ' + formatDate(configRentabilidade.data);
   $('cfg-base-valor').innerHTML  = vLR(configRentabilidade.valor || 0);
 }
+async function salvarPerfil(){
+  const novo = {
+    nome:      $('cfg-nome').value.trim(),
+    sobrenome: $('cfg-sobrenome').value.trim(),
+    telefone:  $('cfg-telefone').value.trim()
+  };
+  if(!novo.nome){ toast('Informe ao menos o nome.', 'err'); return; }
+  carregando(true);
+  const { error } = await getDbClient().from('config').upsert(
+    { chave:'perfil', user_id: usuarioId, valor: novo, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id,chave' }
+  ).select();
+  carregando(false);
+  if(error){ toast('Não foi possível salvar: ' + (error.message || 'erro desconhecido'), 'err'); return; }
+  perfil = novo;
+  mostrarNome();
+  toast('Dados salvos.', 'ok');
+}
+
 async function salvarPix(){
   const chave = $('cfg-pix-chave').value.trim();
   const nome  = $('cfg-pix-nome').value.trim().toUpperCase();
