@@ -431,6 +431,17 @@
     font-size:1.15rem;font-weight:700;color:var(--accent);cursor:pointer;}
   .sim-ctl input{text-align:center !important;padding:6px 4px !important;}
   .ap-lin .dif{display:block;font-size:.72rem;font-weight:700;}
+  .ap-lin .sv{display:block;font-size:.76rem;color:#64748b;font-weight:600;font-variant-numeric:tabular-nums;}
+  .cart-cab,.cart-lin{display:grid;grid-template-columns:minmax(0,1fr) 150px 56px;gap:8px;align-items:center;}
+  .cart-cab{font-size:.72rem;font-weight:700;color:#64748b;padding:0 2px 5px;border-bottom:1px solid #eef1f6;}
+  .cart-cab span:not(:first-child){text-align:right;}
+  .cart-lin{padding:6px 2px;border-bottom:1px solid #f2f5f9;font-size:.86rem;}
+  .cart-lin .pc{text-align:right;font-variant-numeric:tabular-nums;color:#475569;}
+  .cart-lin .val{width:100%;min-width:0;}
+  .cart-lin.tot{font-weight:800;border-bottom:none;}
+  .sim-disp{margin-top:10px;border-radius:10px;padding:9px 12px;font-size:.86rem;font-weight:700;display:flex;justify-content:space-between;gap:10px;}
+  .sim-disp.ok{background:var(--okbg);color:var(--ok);} .sim-disp.livre{background:var(--infobg);color:var(--info);}
+  .sim-disp.erro{background:var(--badbg);color:var(--bad);}
   .ap-cab{font-size:.72rem;font-weight:700;color:#64748b;padding:0 2px 5px;border-bottom:1px solid #eef1f6;}
   .ap-cab span:not(:first-child){text-align:right;}
   .ap-lin{padding:7px 2px;border-bottom:1px solid #f2f5f9;font-size:.88rem;}
@@ -818,17 +829,35 @@
     <section class="view" id="v-aporte">
       <div class="scroller">
         <div class="sim-aviso">Simulação — nada nesta tela altera a sua carteira.</div>
+
         <div class="pane" style="margin-bottom:9px">
-          <h3>Rebalanceamento por ativo</h3>
-          <div class="ap-cab"><span>Ativo</span><span>Hoje</span><span>Simulado</span></div>
+          <h3>Carteira atual</h3>
+          <div class="cart-cab"><span>Ativo</span><span>Valor atual (R$)</span><span>%</span></div>
+          <div id="cart-atual"></div>
+        </div>
+
+        <div class="pane" style="margin-bottom:9px">
+          <h3>Aporte</h3>
+          <label class="fld" style="margin-top:0">Valor do aporte (R$, opcional)</label>
+          <input class="in num" inputmode="decimal" id="ap-valor" oninput="aplicarAporte()">
+          <div class="tabs seg" id="ap-modo" style="margin-top:8px">
+            <button class="tab active" data-modo="livre" onclick="modoAporte('livre')">Deixar disponível</button>
+            <button class="tab" data-modo="prop" onclick="modoAporte('prop')">Distribuir pelo % atual</button>
+          </div>
+          <p class="sub" id="ap-modo-txt"></p>
+        </div>
+
+        <div class="pane" style="margin-bottom:9px">
+          <h3>Carteira simulada</h3>
+          <div class="ap-cab"><span>Ativo</span><span></span><span>Simulado (%)</span></div>
           <div id="sim-lista"></div>
-          <div class="ap-soma" id="ap-soma"></div>
+          <div class="sim-disp" id="ap-soma"></div>
           <div style="display:flex;gap:8px;margin-top:10px">
             <button class="btn btn-ghost" style="flex:1" onclick="simVoltar()">Voltar ao atual</button>
+            <button class="btn btn-ghost" style="flex:1" onclick="salvarSimulacao()">Salvar simulação</button>
           </div>
-          <label class="fld">Aporte novo (R$, opcional)</label>
-          <input class="in num" inputmode="decimal" id="ap-valor">
-          <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="simularAporte()">Simular</button>
+          <p class="sub" id="sim-salva"></p>
+          <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="simularAporte()">Ver compras e vendas</button>
           <div id="ap-resultado"></div>
         </div>
 
@@ -1214,7 +1243,8 @@ let clienteAbertoAtual = null, vendaAbertaAtual = null;
 let filtroVendas = 'aberto';
 let clientesTel = {};
 let histSaldos = {};    /* id da conta/ativo -> [{data, valor, movimento}] em ordem de data */
-let simPct = {};       /* simulação: id do ativo -> % alvo (só na memória, não grava no banco) */
+let simPct = {};       /* simulação: id do ativo -> % do total simulado (carteira + aporte) */
+let simSalva = null;   /* última simulação salva (config "simulacao"); não mexe na carteira */
 let modoRecuperacao = false;
 let appJaCarregado = false;
 
@@ -1620,6 +1650,7 @@ async function carregarDados(){
         configRentabilidade = { data: row.valor.data || hojeInicialStr, valor: parseFloat(row.valor.valor) || 0 };
       if(row.chave === 'pix' && row.valor)
         pixConfig = { chave: row.valor.chave || '', nome: row.valor.nome || '' };
+      if(row.chave === 'simulacao' && row.valor) simSalva = row.valor;
       if(row.chave === 'perfil' && row.valor)
         perfil = { nome: row.valor.nome || '', sobrenome: row.valor.sobrenome || '', telefone: row.valor.telefone || '' };
     });
@@ -2721,71 +2752,146 @@ function classesNaCarteira(){ return Object.keys(NOME_TIPO).filter(t => ativosCa
 function precoDe(a){ return (a.ticker && a.cotacao) ? a.cotacao : null; }   /* null = sem cota (renda fixa: valor em R$) */
 function pctHoje(){
   const total = ativosCarteira.reduce((s, a) => s + valorAtual(a), 0), m = {};
-  ativosCarteira.forEach(a => m[a.id] = total ? Math.round(valorAtual(a) / total * 1000) / 10 : 0);
+  ativosCarteira.forEach(a => m[a.id] = total ? valorAtual(a) / total * 100 : 0);   /* exato; arredonda só na tela */
   return m;
 }
 
+let modoAp = 'livre', simCarregada = false;
+function pctCampo(v){ return String(Math.round((v || 0) * 10) / 10).replace('.', ','); }
+function totalAtual(){ return ativosCarteira.reduce((s, a) => s + valorAtual(a), 0); }
+function aporteAtual(){ return lerValorCampo($('ap-valor').value); }
+function totalSimulado(){ return totalAtual() + aporteAtual(); }
+
 function renderAporte(){
-  const hoje = pctHoje();
-  ativosCarteira.forEach(a => { if(simPct[a.id] == null) simPct[a.id] = hoje[a.id]; });
-  Object.keys(simPct).forEach(id => { if(!ativosCarteira.some(a => a.id === id)) delete simPct[id]; });
+  /* carteira atual (só leitura) */
+  const total = totalAtual(), hoje = pctHoje();
   const ordem = [...ativosCarteira].sort((x, y) => (x.tipo || '').localeCompare(y.tipo || '') || valorAtual(y) - valorAtual(x));
+  $('cart-atual').innerHTML = ordem.map(a => `<div class="cart-lin"><span><b>${esc(a.ticker || a.nome)}</b></span>
+      ${vLR(valorAtual(a))}<span class="pc">${pctFmt(hoje[a.id])}</span></div>`).join('') +
+    `<div class="cart-lin tot"><span>Total</span>${vLR(total)}<span class="pc">100,0%</span></div>`;
+
+  /* abre com a simulação salva, se houver; senão com a carteira de hoje */
+  if(!simCarregada){
+    simCarregada = true;
+    if(simSalva && simSalva.pct){
+      simPct = { ...simSalva.pct };
+      $('ap-valor').value = simSalva.aporte ? valorParaCampo(simSalva.aporte) : '';
+      modoAp = simSalva.modo || 'livre';
+    }
+  }
+  ativosCarteira.forEach(a => { if(simPct[a.id] == null) simPct[a.id] = pctNoSimulado(a); });
+  Object.keys(simPct).forEach(id => { if(!ativosCarteira.some(a => a.id === id)) delete simPct[id]; });
+  marcarModo();
+
   let grupo = '';
   $('sim-lista').innerHTML = ordem.map(a => {
     const cab = a.tipo !== grupo ? `<div class="ap-grupo">${NOME_TIPO[a.tipo] || a.tipo}</div>` : '';
     grupo = a.tipo;
     return cab + `<div class="ap-lin">
-      <span><b>${esc(a.ticker || a.nome)}</b><span class="dif" id="dif-${a.id}"></span></span>
-      <span class="hj">${pctFmt(hoje[a.id])}</span>
+      <span><b>${esc(a.ticker || a.nome)}</b><span class="sv" id="sv-${a.id}"></span><span class="dif" id="dif-${a.id}"></span></span>
+      <span></span>
       <span class="sim-ctl"><button onclick="simPasso('${a.id}',-1)">−</button>
-        <input class="in num" data-teclado="pct" id="sim-${a.id}" value="${String(simPct[a.id]).replace('.', ',')}" oninput="simDigitado('${a.id}')">
+        <input class="in num" data-teclado="pct" id="sim-${a.id}" value="${pctCampo(simPct[a.id])}" oninput="simDigitado('${a.id}')">
         <button onclick="simPasso('${a.id}',1)">+</button></span></div>`;
   }).join('') || '<div class="empty">Cadastre ativos na Carteira primeiro.</div>';
+  $('sim-salva').textContent = simSalva && simSalva.em ? 'Simulação salva em ' + formatDate(String(simSalva.em).slice(0, 10)) + '.' : '';
   ligarTeclado();
+  somaMetas();
+}
+
+/* % que o ativo ocupa no total simulado mantendo o valor de hoje (o aporte fica livre) */
+function pctNoSimulado(a){
+  const ts = totalSimulado();
+  return ts ? valorAtual(a) / ts * 100 : 0;
+}
+function marcarModo(){
+  document.querySelectorAll('#ap-modo .tab').forEach(t => t.classList.toggle('active', t.dataset.modo === modoAp));
+  $('ap-modo-txt').textContent = modoAp === 'livre'
+    ? 'O aporte fica disponível no fim da carteira simulada para você distribuir com o + nos ativos.'
+    : 'O aporte é dividido entre os ativos na mesma proporção de hoje. Depois você ajusta se quiser.';
+}
+function modoAporte(m){ modoAp = m; marcarModo(); aplicarAporte(); }
+/* recalcula os % quando muda o aporte ou o modo */
+function aplicarAporte(){
+  const hoje = pctHoje();
+  ativosCarteira.forEach(a => {
+    simPct[a.id] = modoAp === 'prop' ? hoje[a.id] : pctNoSimulado(a);
+    const el = $('sim-' + a.id); if(el) el.value = pctCampo(simPct[a.id]);
+  });
+  $('ap-resultado').innerHTML = '';
   somaMetas();
 }
 function simPasso(id, d){
   simPct[id] = Math.max(0, Math.min(100, Math.round(((simPct[id] || 0) + d) * 10) / 10));
-  $('sim-' + id).value = String(simPct[id]).replace('.', ',');
+  $('sim-' + id).value = pctCampo(simPct[id]);
   somaMetas();
 }
 function simDigitado(id){ simPct[id] = Math.min(100, lerValorCampo($('sim-' + id).value)); somaMetas(); }
-function simVoltar(){ simPct = {}; $('ap-resultado').innerHTML = ''; ultimaSimulacao = null; renderAporte(); }
+function simVoltar(){
+  simPct = {}; $('ap-valor').value = ''; modoAp = 'livre';
+  $('ap-resultado').innerHTML = ''; ultimaSimulacao = null; renderAporte();
+}
 function somaMetas(){
-  const hoje = pctHoje();
+  const ts = totalSimulado(), atual = {}; ativosCarteira.forEach(a => atual[a.id] = valorAtual(a));
   let soma = 0;
   ativosCarteira.forEach(a => {
-    soma += simPct[a.id] || 0;
-    const d = (simPct[a.id] || 0) - hoje[a.id], el = $('dif-' + a.id);
-    if(el) el.innerHTML = Math.abs(d) < 0.05 ? '' : `<span style="color:${d > 0 ? 'var(--ok)' : 'var(--bad)'}">${d > 0 ? '+' : '-'}${Math.abs(d).toFixed(1).replace('.', ',')} p.p.</span>`;
+    const p = simPct[a.id] || 0; soma += p;
+    const vSim = ts * p / 100, d = vSim - atual[a.id];
+    const sv = $('sv-' + a.id); if(sv) sv.textContent = 'R$ ' + formatCurrency(vSim);
+    const el = $('dif-' + a.id);
+    if(el) el.innerHTML = Math.abs(d) < 0.5 ? '' : `<span style="color:${d > 0 ? 'var(--ok)' : 'var(--bad)'}">${d > 0 ? '+' : '-'} R$ ${formatCurrency(Math.abs(d))}</span>`;
   });
-  const ok = Math.abs(soma - 100) < 0.15;
-  $('ap-soma').innerHTML = `<span>Soma simulada</span><span style="color:${ok ? 'var(--ok)' : 'var(--bad)'}">${pctFmt(soma)}${ok ? '' : ' · precisa dar 100%'}</span>`;
-  return ok;
+  const livre = 100 - soma, livreRs = ts * livre / 100;
+  const box = $('ap-soma');
+  if(livre < -0.15){
+    box.className = 'sim-disp erro';
+    box.innerHTML = `<span>Passou de 100%</span><span>${pctFmt(soma)} · tire ${pctFmt(-livre)}</span>`;
+    return false;
+  }
+  if(livre > 0.15){
+    box.className = 'sim-disp livre';
+    box.innerHTML = `<span>Disponível para distribuir</span><span>R$ ${formatCurrency(livreRs)} · ${pctFmt(livre)}</span>`;
+  } else {
+    box.className = 'sim-disp ok';
+    box.innerHTML = `<span>Tudo distribuído</span><span>100,0%</span>`;
+  }
+  return true;
+}
+
+async function salvarSimulacao(){
+  if(!somaMetas()){ toast('A carteira simulada passou de 100%.', 'err'); return; }
+  const valor = { pct: { ...simPct }, aporte: aporteAtual(), modo: modoAp, em: new Date().toISOString() };
+  carregando(true);
+  const { error } = await getDbClient().from('config').upsert(
+    { chave:'simulacao', user_id: usuarioId, valor, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id,chave' }).select();
+  carregando(false);
+  if(error){ toast('Não foi possível salvar a simulação: ' + error.message, 'err'); return; }
+  simSalva = valor;
+  $('sim-salva').textContent = 'Simulação salva em ' + formatDate(hojeStr()) + '.';
+  toast('Simulação salva. A carteira não foi alterada.', 'ok');
 }
 
 function simularAporte(){
-  if(!somaMetas()){ toast('A soma simulada precisa dar 100%.', 'err'); return; }
-  const aporte = lerValorCampo($('ap-valor').value);
+  if(!somaMetas()){ toast('A carteira simulada passou de 100%.', 'err'); return; }
+  const aporte = aporteAtual();
   const atual = {}; ativosCarteira.forEach(a => atual[a.id] = valorAtual(a));
   const total = Object.values(atual).reduce((s, v) => s + v, 0);
   const novoTotal = total + aporte;
-  const soma = ativosCarteira.reduce((s, a) => s + (simPct[a.id] || 0), 0) || 100;
-  const alvo = {}; ativosCarteira.forEach(a => alvo[a.id] = novoTotal * (simPct[a.id] || 0) / soma);
+  const alvo = {}; ativosCarteira.forEach(a => alvo[a.id] = novoTotal * (simPct[a.id] || 0) / 100);
 
   /* compras e vendas em cotas inteiras (renda fixa em R$) */
   const ops = {};
   ativosCarteira.forEach(a => {
     const dif = alvo[a.id] - atual[a.id], pr = precoDe(a);
     if(pr){
-      let cotas = dif >= 0 ? Math.floor(dif / pr) : -Math.min(Math.floor(-dif / pr), Math.floor(a.qtd));
+      const cotas = dif >= 0 ? Math.floor(dif / pr) : -Math.min(Math.ceil(-dif / pr - 0.0001), Math.floor(a.qtd));
       if(cotas) ops[a.id] = { cotas, valor: cotas * pr };
     } else if(Math.abs(dif) >= 0.01){
       ops[a.id] = { cotas: null, valor: Math.max(dif, -atual[a.id]) };
     }
   });
   let caixa = aporte - Object.values(ops).reduce((s, o) => s + o.valor, 0);
-  /* faltou dinheiro pelo arredondamento: tira compra de quem passaria mais da meta */
   for(let g = 0; g < 5000 && caixa < -0.009; g++){
     const cands = ativosCarteira.filter(a => ops[a.id] && ops[a.id].valor > 0)
       .sort((x, y) => (atual[y.id] + ops[y.id].valor - alvo[y.id]) - (atual[x.id] + ops[x.id].valor - alvo[x.id]));
@@ -2812,10 +2918,10 @@ function simularAporte(){
     return `<div class="ap-item"><div class="l1"><b>${nome}</b><span class="ap-tag ${compra ? 'c' : 'v'}">${compra ? 'Comprar' : 'Vender'}</span></div>
       <div class="l1" style="margin-top:4px"><span class="meta">${qtd}</span>${vLR(Math.abs(l.o.valor))}</div>
       <div class="l2">Peso na carteira: ${pctFmt(l.antesPct)} → ${pctFmt(l.depoisPct)} · simulado ${pctFmt(l.metaPct)}</div></div>`;
-  }).join('') : '<div class="empty">Nada a mudar: a carteira já está nessa divisão.</div>') +
+  }).join('') : '<div class="empty">Nada a comprar ou vender nessa simulação.</div>') +
   `<div class="result-line"><span class="lbl">Total a comprar</span><b>${vLR(totCompra)}</b></div>
    <div class="result-line"><span class="lbl">Total a vender</span><b style="color:${totVenda ? 'var(--bad)' : 'inherit'}">${vLR(totVenda)}</b></div>
-   <div class="result-line"><span class="lbl">Aporte novo</span><b>${vLR(aporte)}</b></div>
+   <div class="result-line"><span class="lbl">Aporte</span><b>${vLR(aporte)}</b></div>
    <div class="result-line"><span class="lbl">Sobra em caixa</span><b>${vLR(caixa)}</b></div>
    <p class="sub">Só simulação: nada foi alterado na carteira. Cotações da última atualização (~30 min de atraso), sem corretagem nem impostos.</p></div>`;
 }
