@@ -783,6 +783,7 @@
             <div class="view-head">
               <h2>Carteira</h2>
               <div style="display:flex;gap:6px">
+                <button class="iconbtn" title="Salvar card da carteira" onclick="salvarCardCarteira()"><svg><use href="#ic-pie"/></svg></button>
                 <button class="iconbtn" id="btn-cotacoes" title="Atualizar cotações" onclick="atualizarCotacoes(true)"><svg><use href="#ic-refresh"/></svg></button>
                 <button class="btn-add" onclick="abrirModalAtivo()"><svg><use href="#ic-plus"/></svg> Lançar ativo</button>
               </div>
@@ -834,10 +835,12 @@
         <div class="pane">
           <h3>Relatório da carteira</h3>
           <p class="sub" style="margin-top:0">Posição por ativo e por classe, com as metas e a última simulação. Para colar numa IA ou guardar.</p>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="btn btn-primary" style="flex:1" onclick="copiarRelatorio()">Copiar texto</button>
+          <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="salvarCardCarteira()">Salvar card da carteira (imagem)</button>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-ghost" style="flex:1" onclick="copiarRelatorio()">Copiar texto</button>
             <button class="btn btn-ghost" style="flex:1" onclick="baixarCsv()">Baixar planilha (CSV)</button>
           </div>
+          <p class="sub">Para a IA, o texto é lido com mais precisão que a imagem. O card é melhor para guardar ou mandar no WhatsApp.</p>
         </div>
       </div>
     </section>
@@ -2893,6 +2896,82 @@ async function copiarRelatorio(){
     ta.remove();
   }
 }
+/* ---------- Card da carteira em imagem (PNG) ---------- */
+function salvarCardCarteira(){
+  const L = linhasRelatorio();
+  if(!L.length){ toast('Nenhum ativo na carteira.', 'err'); return; }
+  const total = L.reduce((s, l) => s + l.atual, 0);
+  const cls = classesNaCarteira();
+  const W = 1080, P = 56, LH = 54, F = '"Segoe UI",Roboto,Arial,sans-serif';
+  const H = 330 + cls.length * LH + 120 + L.length * LH + 110;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d');
+  const cor = { fundo:'#ffffff', azul:'#23459c', texto:'#0b1220', cinza:'#64748b', linha:'#e5e9f0', verde:'#15803d', verm:'#b91c1c', faixa:'#eef2fb' };
+  const txt = (t, x, y, tam, peso, cr, al) => { c.font = `${peso || 400} ${tam}px ${F}`; c.fillStyle = cr || cor.texto; c.textAlign = al || 'left'; c.fillText(t, x, y); };
+  /* valor contábil: "R$" encostado à esquerda da coluna, número à direita */
+  const rs = (v, xIni, xFim, y, tam, peso, cr) => { txt('R$', xIni, y, tam, 600, cor.cinza); txt(formatCurrency(v), xFim, y, tam, peso || 600, cr || cor.texto, 'right'); };
+  const pc = v => (v >= 0 ? '+' : '-') + Math.abs(v).toFixed(2).replace('.', ',') + '%';
+
+  c.fillStyle = cor.fundo; c.fillRect(0, 0, W, H);
+  c.fillStyle = cor.azul; c.fillRect(0, 0, W, 210);
+  txt('elo · Carteira de investimentos', P, 78, 40, 800, '#ffffff');
+  txt('Posição em ' + formatDate(hojeStr()), P, 124, 26, 400, '#c7d4f5');
+  txt('Valor total', P, 178, 26, 400, '#c7d4f5');
+  txt('R$ ' + formatCurrency(total), W - P, 178, 44, 800, '#ffffff', 'right');
+
+  let y = 270;
+  txt('POR CLASSE', P, y, 22, 800, cor.azul);
+  txt('Valor atual', 640, y, 22, 700, cor.cinza, 'right');
+  txt('% carteira', 830, y, 22, 700, cor.cinza, 'right');
+  txt('Meta', W - P, y, 22, 700, cor.cinza, 'right');
+  y += 14; c.fillStyle = cor.linha; c.fillRect(P, y, W - 2 * P, 2);
+  cls.forEach(t => {
+    y += LH;
+    const v = ativosCarteira.filter(a => a.tipo === t).reduce((s, a) => s + valorAtual(a), 0);
+    txt(NOME_TIPO[t], P, y - 14, 28, 600);
+    rs(v, 420, 640, y - 14, 28);
+    txt(pctFmt(total ? v / total * 100 : 0), 830, y - 14, 28, 600, cor.texto, 'right');
+    txt(metas.classes[t] != null ? pctFmt(metas.classes[t]) : '—', W - P, y - 14, 28, 600, cor.cinza, 'right');
+  });
+
+  y += 70;
+  c.fillStyle = cor.faixa; c.fillRect(P - 12, y - 36, W - 2 * P + 24, 50);
+  txt('Ativo', P, y, 22, 800, cor.azul);
+  txt('Qtd (un)', 360, y, 22, 700, cor.cinza, 'right');
+  txt('Valor atual (R$)', 650, y, 22, 700, cor.cinza, 'right');
+  txt('% cart.', 800, y, 22, 700, cor.cinza, 'right');
+  txt('Resultado', W - P, y, 22, 700, cor.cinza, 'right');
+  L.forEach((l, i) => {
+    y += LH;
+    if(i % 2) { c.fillStyle = '#f7f9fc'; c.fillRect(P - 12, y - 40, W - 2 * P + 24, LH); }
+    txt(l.ativo, P, y - 12, 26, 700);
+    txt(l.qtd != null ? l.qtd.toLocaleString('pt-BR', { maximumFractionDigits: 4 }) : '—', 360, y - 12, 26, 500, cor.cinza, 'right');
+    rs(l.atual, 430, 650, y - 12, 26);
+    txt(pctFmt(l.pct), 800, y - 12, 26, 500, cor.texto, 'right');
+    txt(pc(l.resPct), W - P, y - 12, 26, 700, l.res >= 0 ? cor.verde : cor.verm, 'right');
+  });
+
+  y += 50; c.fillStyle = cor.linha; c.fillRect(P, y - 26, W - 2 * P, 2);
+  txt('Cotações da B3 com até ~30 min de atraso. Resultado = valor atual vs. valor investido.', P, y + 14, 20, 400, cor.cinza);
+  txt('Elo Sistemas de Informação', W - P, y + 48, 20, 700, cor.azul, 'right');
+
+  /* corta a sobra do fim */
+  const hFinal = Math.min(H, y + 76);
+  const out = document.createElement('canvas'); out.width = W; out.height = hFinal;
+  out.getContext('2d').drawImage(cv, 0, 0);
+  out.toBlob(async blob => {
+    if(!blob){ toast('Não foi possível gerar a imagem.', 'err'); return; }
+    const nome = `carteira-${hojeStr()}.png`;
+    const arq = new File([blob], nome, { type: 'image/png' });
+    try{
+      if(navigator.canShare && navigator.canShare({ files: [arq] })){ await navigator.share({ files: [arq], title: 'Minha carteira' }); return; }
+    }catch(e){ if(e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast('Card salvo nos downloads.', 'ok');
+  }, 'image/png');
+}
+
 function baixarCsv(){
   const n = v => v == null ? '' : (Number(v).toFixed(2)).replace('.', ',');
   const cab = ['Classe','Ativo','Conta','Quantidade (un)','Preço médio (R$)','Cotação (R$)','Investido (R$)','Valor atual (R$)','% da carteira','Resultado (R$)','Resultado (%)','Variação do dia (%)'];
