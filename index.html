@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>elo · Gestão</title>
+<title>Elo · Gestão</title>
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="elo Gestão">
-<link rel="icon" href="logoelo.png">
-<link rel="apple-touch-icon" href="logoelo.png">
+<meta name="apple-mobile-web-app-title" content="Elo Gestão">
+<link rel="icon" type="image/png" sizes="32x32" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icone-192.png">
+<link rel="manifest" href="manifest.webmanifest">
 <script>
   /* Definido no <head>: o onerror da logo pode disparar antes do script do fim da página.
      Se logoelo.png não estiver junto do HTML, mostra a marca em texto no lugar. */
@@ -421,7 +423,14 @@
   .tk-grade .tk-ic{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;}
 
   /* ===== Aporte e metas ===== */
-  .ap-cab,.ap-lin{display:grid;grid-template-columns:minmax(0,1fr) 64px 92px;gap:8px;align-items:center;}
+  .sim-aviso{max-width:var(--col);margin:0 auto 9px;background:var(--warnbg);color:var(--warn);border:1px solid #efd08a;
+    border-radius:10px;padding:8px 12px;font-size:.82rem;font-weight:700;text-align:center;}
+  .ap-cab,.ap-lin{display:grid;grid-template-columns:minmax(0,1fr) 58px 146px;gap:8px;align-items:center;}
+  .sim-ctl{display:flex;align-items:center;gap:5px;}
+  .sim-ctl button{width:34px;height:34px;flex:0 0 auto;border:1px solid var(--border);background:#fff;border-radius:8px;
+    font-size:1.15rem;font-weight:700;color:var(--accent);cursor:pointer;}
+  .sim-ctl input{text-align:center !important;padding:6px 4px !important;}
+  .ap-lin .dif{display:block;font-size:.72rem;font-weight:700;}
   .ap-cab{font-size:.72rem;font-weight:700;color:#64748b;padding:0 2px 5px;border-bottom:1px solid #eef1f6;}
   .ap-cab span:not(:first-child){text-align:right;}
   .ap-lin{padding:7px 2px;border-bottom:1px solid #f2f5f9;font-size:.88rem;}
@@ -492,8 +501,8 @@
 <div id="authScreen" class="auth">
   <div class="auth-card">
     <div class="auth-brand">
-      <img class="logo-auth" src="logoelo.png" alt="elo" onerror="semLogo(this)">
-      <span class="brand" style="display:none">elo</span>
+      <img class="logo-auth" src="logoelo.png" alt="Elo" onerror="semLogo(this)">
+      <span class="brand" style="display:none">Elo</span>
       <h1 id="auth-titulo">Gestão financeira</h1>
       <p id="auth-subtitulo">Acesse sua conta</p>
     </div>
@@ -543,8 +552,8 @@
 <!-- ===================== APP ===================== -->
 <header class="appbar">
   <button class="hamb" id="btnMenu" aria-label="Abrir menu"><svg><use href="#ic-menu"/></svg></button>
-  <img class="logo-appbar" src="logoelo.png" alt="elo" onerror="semLogo(this)">
-  <span class="brand" style="display:none">elo</span>
+  <img class="logo-appbar" src="logoelo.png" alt="Elo" onerror="semLogo(this)">
+  <span class="brand" style="display:none">Elo</span>
   <div class="appbar-title"><h1 id="appTitle">Visão geral</h1></div>
   <span class="db" id="dbStatus">conectando</span>
 </header>
@@ -553,8 +562,8 @@
   <div class="drawer-overlay" id="drawerOverlay"></div>
   <aside class="drawer" id="drawer">
     <div class="drawer-head">
-      <img class="logo-drawer" src="logoelo.png" alt="elo" onerror="semLogo(this)">
-      <span class="brand" style="display:none">elo</span>
+      <img class="logo-drawer" src="logoelo.png" alt="Elo" onerror="semLogo(this)">
+      <span class="brand" style="display:none">Elo</span>
       <div class="drawer-sub">Gestão financeira</div>
     </div>
     <nav class="drawer-nav">
@@ -562,7 +571,7 @@
       <button class="dnav" data-view="v-vendas"><svg class="dic"><use href="#ic-cart"/></svg> Vendas <span class="n" id="nav-venc" style="display:none">0</span></button>
       <button class="dnav" data-view="v-resultado"><svg class="dic"><use href="#ic-chart"/></svg> Resultado</button>
       <button class="dnav" data-view="v-patrimonio"><svg class="dic"><use href="#ic-wallet"/></svg> Patrimônio</button>
-      <button class="dnav" data-view="v-aporte"><svg class="dic"><use href="#ic-pie"/></svg> Aporte e metas</button>
+      <button class="dnav" data-view="v-aporte"><svg class="dic"><use href="#ic-pie"/></svg> Simulação</button>
       <button class="dnav" data-view="v-lic" id="nav-admin" style="display:none;"><svg class="dic"><use href="#ic-shield"/></svg> Licenças</button>
       <button class="dnav" data-view="v-config"><svg class="dic"><use href="#ic-gear"/></svg> Configurações</button>
       <button class="dnav" data-view="v-sobre"><svg class="dic"><use href="#ic-info"/></svg> Sobre</button>
@@ -805,36 +814,27 @@
       <div class="dots" data-dots="vpPat"><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
     </section>
 
-    <!-- APORTE E METAS -->
+    <!-- SIMULAÇÃO -->
     <section class="view" id="v-aporte">
       <div class="scroller">
+        <div class="sim-aviso">Simulação — nada nesta tela altera a sua carteira.</div>
         <div class="pane" style="margin-bottom:9px">
-          <h3>Metas por classe</h3>
-          <div class="ap-cab"><span>Classe</span><span>Hoje</span><span>Meta</span></div>
-          <div id="ap-classes"></div>
+          <h3>Rebalanceamento por ativo</h3>
+          <div class="ap-cab"><span>Ativo</span><span>Hoje</span><span>Simulado</span></div>
+          <div id="sim-lista"></div>
           <div class="ap-soma" id="ap-soma"></div>
-          <p class="sub">Dentro de cada classe os ativos dividem a meta por igual. Use − e + para dar mais peso a algum.</p>
-          <div id="ap-pesos"></div>
-          <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="salvarMetas()">Salvar metas</button>
-        </div>
-
-        <div class="pane" style="margin-bottom:9px">
-          <h3>Simular aporte</h3>
-          <label class="fld" style="margin-top:0">Valor do aporte (R$)</label>
-          <input class="in num" inputmode="decimal" id="ap-valor">
-          <label class="fld">Modo</label>
-          <div class="tabs seg" id="ap-modo">
-            <button class="tab active" data-modo="comprar" onclick="modoAporte('comprar')">Só comprar</button>
-            <button class="tab" data-modo="rebalancear" onclick="modoAporte('rebalancear')">Rebalancear</button>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-ghost" style="flex:1" onclick="simVoltar()">Voltar ao atual</button>
           </div>
-          <p class="sub" id="ap-modo-txt">O aporte vai primeiro para o que está mais abaixo da meta. Nada é vendido.</p>
+          <label class="fld">Aporte novo (R$, opcional)</label>
+          <input class="in num" inputmode="decimal" id="ap-valor">
           <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="simularAporte()">Simular</button>
           <div id="ap-resultado"></div>
         </div>
 
         <div class="pane">
           <h3>Relatório da carteira</h3>
-          <p class="sub" style="margin-top:0">Posição por ativo e por classe, com as metas e a última simulação. Para colar numa IA ou guardar.</p>
+          <p class="sub" style="margin-top:0">Posição por ativo e por classe, com a última simulação. Para colar numa IA ou guardar.</p>
           <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="salvarCardCarteira()">Salvar card da carteira (imagem)</button>
           <div style="display:flex;gap:8px;margin-top:8px">
             <button class="btn btn-ghost" style="flex:1" onclick="copiarRelatorio()">Copiar texto</button>
@@ -903,8 +903,8 @@
     <section class="view" id="v-sobre">
       <div class="scroller">
         <div class="about">
-          <img class="logo-sobre" src="logoelo.png" alt="elo" onerror="semLogo(this)">
-          <span class="brand" style="display:none">elo</span>
+          <img class="logo-sobre" src="logoelo.png" alt="Elo" onerror="semLogo(this)">
+          <span class="brand" style="display:none">Elo</span>
           <p class="about-tag">Gestão financeira</p>
           <p class="sub" style="margin-top:10px">Vendas, recebíveis, contas e patrimônio em um lugar só.</p>
           <span class="about-ver">Versão 2.0</span>
@@ -1213,8 +1213,8 @@ let carrinhoAtual = [], vendaEditId = null, idParcelaEmAcao = null;
 let clienteAbertoAtual = null, vendaAbertaAtual = null;
 let filtroVendas = 'aberto';
 let clientesTel = {};
-let histSaldos = {};
-let metas = { classes: {}, pesos: {} };   /* classes: {FII:60, ACAO:40}; pesos: {MXRF11:2} */    /* id da conta/ativo -> [{data, valor, movimento}] em ordem de data */   /* NOME DO CLIENTE -> telefone */
+let histSaldos = {};    /* id da conta/ativo -> [{data, valor, movimento}] em ordem de data */
+let simPct = {};       /* simulação: id do ativo -> % alvo (só na memória, não grava no banco) */
 let modoRecuperacao = false;
 let appJaCarregado = false;
 
@@ -1249,7 +1249,7 @@ function responderConfirm(valor){
 /* =========================================================================
    NAVEGAÇÃO
    ========================================================================= */
-const TITULOS = {'v-aporte':'Aporte e metas','v-geral':'Início','v-resultado':'Resultado','v-vendas':'Vendas','v-patrimonio':'Patrimônio',
+const TITULOS = {'v-aporte':'Simulação','v-geral':'Início','v-resultado':'Resultado','v-vendas':'Vendas','v-patrimonio':'Patrimônio',
                  'v-lic':'Licenças','v-config':'Configurações','v-sobre':'Sobre'};
 
 /* ===== Telas deslizantes (abas + arraste + pontinhos) ===== */
@@ -1310,7 +1310,7 @@ function irParaDevedores(){ abrirView('v-vendas'); irTela('vpVendas', 2); }
 function abrirView(id){
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === id));
   document.querySelectorAll('.dnav[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === id));
-  $('appTitle').textContent = TITULOS[id] || 'elo';
+  $('appTitle').textContent = TITULOS[id] || 'Elo';
   fecharDrawer();
   fecharDetalheVenda(); fecharDetalheCliente();
   if(id === 'v-lic') renderLicencas();
@@ -1620,8 +1620,6 @@ async function carregarDados(){
         configRentabilidade = { data: row.valor.data || hojeInicialStr, valor: parseFloat(row.valor.valor) || 0 };
       if(row.chave === 'pix' && row.valor)
         pixConfig = { chave: row.valor.chave || '', nome: row.valor.nome || '' };
-      if(row.chave === 'metas' && row.valor)
-        metas = { classes: row.valor.classes || {}, pesos: row.valor.pesos || {} };
       if(row.chave === 'perfil' && row.valor)
         perfil = { nome: row.valor.nome || '', sobrenome: row.valor.sobrenome || '', telefone: row.valor.telefone || '' };
     });
@@ -2715,146 +2713,111 @@ function tipoProvavel(tk){
 const NOME_TIPO = { ACAO:'Ações', FII:'Fundos imobiliários', ETF:'ETFs', BDR:'BDRs', RF:'Renda fixa / outros' };
 
 /* =========================================================================
-   APORTE E METAS
+   SIMULAÇÃO DE REBALANCEAMENTO — tudo em memória, nada vai para o banco
    ========================================================================= */
-let modoAp = 'comprar', ultimaSimulacao = null;
-function classesNaCarteira(){ return Object.keys(NOME_TIPO).filter(t => ativosCarteira.some(a => a.tipo === t)); }
-function pesoDe(a){ const k = a.ticker || a.nome; return metas.pesos[k] != null ? metas.pesos[k] : 1; }
+let ultimaSimulacao = null;
 function pctFmt(n){ return (Number(n) || 0).toFixed(1).replace('.', ',') + '%'; }
+function classesNaCarteira(){ return Object.keys(NOME_TIPO).filter(t => ativosCarteira.some(a => a.tipo === t)); }
+function precoDe(a){ return (a.ticker && a.cotacao) ? a.cotacao : null; }   /* null = sem cota (renda fixa: valor em R$) */
+function pctHoje(){
+  const total = ativosCarteira.reduce((s, a) => s + valorAtual(a), 0), m = {};
+  ativosCarteira.forEach(a => m[a.id] = total ? Math.round(valorAtual(a) / total * 1000) / 10 : 0);
+  return m;
+}
 
 function renderAporte(){
-  const total = ativosCarteira.reduce((s, a) => s + valorAtual(a), 0);
-  const cls = classesNaCarteira();
-  /* sem meta salva: começa com a divisão de hoje, arredondada */
-  if(!Object.keys(metas.classes).length && total > 0)
-    cls.forEach(t => metas.classes[t] = Math.round(ativosCarteira.filter(a => a.tipo === t).reduce((s, a) => s + valorAtual(a), 0) / total * 100));
-  $('ap-classes').innerHTML = cls.map(t => {
-    const v = ativosCarteira.filter(a => a.tipo === t).reduce((s, a) => s + valorAtual(a), 0);
-    return `<div class="ap-lin"><span>${NOME_TIPO[t]}</span><span class="hj">${pctFmt(total ? v / total * 100 : 0)}</span>
-      <input class="in num" data-teclado="pct" data-classe="${t}" value="${String(metas.classes[t] ?? 0).replace('.', ',')}" oninput="somaMetas()"></div>`;
+  const hoje = pctHoje();
+  ativosCarteira.forEach(a => { if(simPct[a.id] == null) simPct[a.id] = hoje[a.id]; });
+  Object.keys(simPct).forEach(id => { if(!ativosCarteira.some(a => a.id === id)) delete simPct[id]; });
+  const ordem = [...ativosCarteira].sort((x, y) => (x.tipo || '').localeCompare(y.tipo || '') || valorAtual(y) - valorAtual(x));
+  let grupo = '';
+  $('sim-lista').innerHTML = ordem.map(a => {
+    const cab = a.tipo !== grupo ? `<div class="ap-grupo">${NOME_TIPO[a.tipo] || a.tipo}</div>` : '';
+    grupo = a.tipo;
+    return cab + `<div class="ap-lin">
+      <span><b>${esc(a.ticker || a.nome)}</b><span class="dif" id="dif-${a.id}"></span></span>
+      <span class="hj">${pctFmt(hoje[a.id])}</span>
+      <span class="sim-ctl"><button onclick="simPasso('${a.id}',-1)">−</button>
+        <input class="in num" data-teclado="pct" id="sim-${a.id}" value="${String(simPct[a.id]).replace('.', ',')}" oninput="simDigitado('${a.id}')">
+        <button onclick="simPasso('${a.id}',1)">+</button></span></div>`;
   }).join('') || '<div class="empty">Cadastre ativos na Carteira primeiro.</div>';
-  $('ap-pesos').innerHTML = cls.map(t => {
-    const lista = ativosCarteira.filter(a => a.tipo === t);
-    if(lista.length < 2) return '';
-    return `<div class="ap-grupo">${NOME_TIPO[t]}</div>` + lista.map(a => {
-      const k = esc(a.ticker || a.nome);
-      return `<div class="ap-peso"><span>${k}</span><span class="stp">
-        <button onclick="mudarPeso('${k}',-1)">−</button><b id="peso-${k.replace(/\W/g,'_')}">${pesoDe(a)}</b><button onclick="mudarPeso('${k}',1)">+</button></span></div>`;
-    }).join('');
-  }).join('');
   ligarTeclado();
   somaMetas();
 }
+function simPasso(id, d){
+  simPct[id] = Math.max(0, Math.min(100, Math.round(((simPct[id] || 0) + d) * 10) / 10));
+  $('sim-' + id).value = String(simPct[id]).replace('.', ',');
+  somaMetas();
+}
+function simDigitado(id){ simPct[id] = Math.min(100, lerValorCampo($('sim-' + id).value)); somaMetas(); }
+function simVoltar(){ simPct = {}; $('ap-resultado').innerHTML = ''; ultimaSimulacao = null; renderAporte(); }
 function somaMetas(){
+  const hoje = pctHoje();
   let soma = 0;
-  document.querySelectorAll('[data-classe]').forEach(i => soma += lerValorCampo(i.value));
-  const ok = Math.abs(soma - 100) < 0.05;
-  $('ap-soma').innerHTML = `<span>Soma das metas</span><span style="color:${ok ? 'var(--ok)' : 'var(--bad)'}">${pctFmt(soma)}${ok ? '' : ' · precisa dar 100%'}</span>`;
+  ativosCarteira.forEach(a => {
+    soma += simPct[a.id] || 0;
+    const d = (simPct[a.id] || 0) - hoje[a.id], el = $('dif-' + a.id);
+    if(el) el.innerHTML = Math.abs(d) < 0.05 ? '' : `<span style="color:${d > 0 ? 'var(--ok)' : 'var(--bad)'}">${d > 0 ? '+' : '-'}${Math.abs(d).toFixed(1).replace('.', ',')} p.p.</span>`;
+  });
+  const ok = Math.abs(soma - 100) < 0.15;
+  $('ap-soma').innerHTML = `<span>Soma simulada</span><span style="color:${ok ? 'var(--ok)' : 'var(--bad)'}">${pctFmt(soma)}${ok ? '' : ' · precisa dar 100%'}</span>`;
   return ok;
 }
-function lerMetasTela(){
-  const c = {};
-  document.querySelectorAll('[data-classe]').forEach(i => c[i.dataset.classe] = lerValorCampo(i.value));
-  return c;
-}
-function mudarPeso(k, d){
-  const atual = metas.pesos[k] != null ? metas.pesos[k] : 1;
-  const novo = Math.max(0, Math.min(9, atual + d));
-  if(novo === 1) delete metas.pesos[k]; else metas.pesos[k] = novo;
-  const el = $('peso-' + k.replace(/\W/g, '_')); if(el) el.textContent = novo;
-}
-async function salvarMetas(){
-  if(!somaMetas()){ toast('As metas por classe precisam somar 100%.', 'err'); return; }
-  metas.classes = lerMetasTela();
-  carregando(true);
-  const { error } = await getDbClient().from('config').upsert(
-    { chave:'metas', user_id: usuarioId, valor: metas, updated_at: new Date().toISOString() },
-    { onConflict: 'user_id,chave' }).select();
-  carregando(false);
-  if(error){ toast('Não foi possível salvar as metas: ' + error.message, 'err'); return; }
-  toast('Metas salvas.', 'ok');
-}
-function modoAporte(m){
-  modoAp = m;
-  document.querySelectorAll('#ap-modo .tab').forEach(t => t.classList.toggle('active', t.dataset.modo === m));
-  $('ap-modo-txt').textContent = m === 'comprar'
-    ? 'O aporte vai primeiro para o que está mais abaixo da meta. Nada é vendido.'
-    : 'Mostra também o que vender do que está acima da meta para comprar o que está abaixo.';
-}
-
-/* Meta em R$ de cada ativo para um patrimônio total "alvoTotal" */
-function metasPorAtivo(alvoTotal, metasCl){
-  const m = {};
-  Object.keys(metasCl).forEach(t => {
-    const lista = ativosCarteira.filter(a => a.tipo === t);
-    const somaP = lista.reduce((s, a) => s + pesoDe(a), 0);
-    lista.forEach(a => m[a.id] = somaP ? alvoTotal * (metasCl[t] / 100) * pesoDe(a) / somaP : 0);
-  });
-  return m;
-}
-function precoDe(a){ return (a.ticker && a.cotacao) ? a.cotacao : null; }   /* null = sem cota (renda fixa: aporta em R$) */
 
 function simularAporte(){
-  if(!somaMetas()){ toast('As metas por classe precisam somar 100%.', 'err'); return; }
-  const metasCl = lerMetasTela();
+  if(!somaMetas()){ toast('A soma simulada precisa dar 100%.', 'err'); return; }
   const aporte = lerValorCampo($('ap-valor').value);
-  if(modoAp === 'comprar' && aporte <= 0){ toast('Informe o valor do aporte.', 'err'); return; }
   const atual = {}; ativosCarteira.forEach(a => atual[a.id] = valorAtual(a));
   const total = Object.values(atual).reduce((s, v) => s + v, 0);
   const novoTotal = total + aporte;
-  const alvo = metasPorAtivo(novoTotal, metasCl);
-  const ops = {};   /* id -> {cotas, valor} (valor negativo = venda) */
-  let caixa = aporte;
+  const soma = ativosCarteira.reduce((s, a) => s + (simPct[a.id] || 0), 0) || 100;
+  const alvo = {}; ativosCarteira.forEach(a => alvo[a.id] = novoTotal * (simPct[a.id] || 0) / soma);
 
-  if(modoAp === 'rebalancear'){
-    ativosCarteira.forEach(a => {
-      const dif = (alvo[a.id] || 0) - atual[a.id], pr = precoDe(a);
-      if(pr){
-        const cotas = dif < 0 ? -Math.min(Math.floor(-dif / pr), Math.floor(a.qtd)) : 0;
-        if(cotas) { ops[a.id] = { cotas, valor: cotas * pr }; caixa -= cotas * pr; }
-      } else if(dif < -0.5){ ops[a.id] = { cotas: null, valor: dif }; caixa -= dif; }
-    });
-  }
-  /* compras: preenche o que está mais abaixo da meta, uma cota por vez */
-  const faltas = () => ativosCarteira.map(a => ({ a, falta: (alvo[a.id] || 0) - atual[a.id] - ((ops[a.id] || {}).valor || 0) }))
-                                     .filter(x => x.falta > 0.5).sort((x, y) => (y.falta / (alvo[y.a.id] || 1)) - (x.falta / (alvo[x.a.id] || 1)));
-  /* renda fixa entra na mesma fila, em parcelas de até R$ 100 */
-  for(let guarda = 0; guarda < 20000 && caixa > 0.009; guarda++){
-    const cand = faltas().find(x => precoDe(x.a) ? precoDe(x.a) <= caixa : true);
-    if(!cand) break;
-    const pr = precoDe(cand.a);
+  /* compras e vendas em cotas inteiras (renda fixa em R$) */
+  const ops = {};
+  ativosCarteira.forEach(a => {
+    const dif = alvo[a.id] - atual[a.id], pr = precoDe(a);
     if(pr){
-      const o = ops[cand.a.id] || { cotas: 0, valor: 0 };
-      o.cotas = (o.cotas || 0) + 1; o.valor += pr; ops[cand.a.id] = o; caixa -= pr;
-    } else {
-      const v = Math.min(cand.falta, 100, caixa);
-      const o = ops[cand.a.id] || { cotas: null, valor: 0 };
-      o.valor += v; ops[cand.a.id] = o; caixa -= v;
+      let cotas = dif >= 0 ? Math.floor(dif / pr) : -Math.min(Math.floor(-dif / pr), Math.floor(a.qtd));
+      if(cotas) ops[a.id] = { cotas, valor: cotas * pr };
+    } else if(Math.abs(dif) >= 0.01){
+      ops[a.id] = { cotas: null, valor: Math.max(dif, -atual[a.id]) };
     }
+  });
+  let caixa = aporte - Object.values(ops).reduce((s, o) => s + o.valor, 0);
+  /* faltou dinheiro pelo arredondamento: tira compra de quem passaria mais da meta */
+  for(let g = 0; g < 5000 && caixa < -0.009; g++){
+    const cands = ativosCarteira.filter(a => ops[a.id] && ops[a.id].valor > 0)
+      .sort((x, y) => (atual[y.id] + ops[y.id].valor - alvo[y.id]) - (atual[x.id] + ops[x.id].valor - alvo[x.id]));
+    if(!cands.length) break;
+    const a = cands[0], o = ops[a.id], pr = precoDe(a);
+    if(pr){ o.cotas -= 1; o.valor -= pr; caixa += pr; }
+    else { const r = Math.min(o.valor, -caixa); o.valor -= r; caixa += r; }
+    if(Math.abs(o.valor) < 0.005) delete ops[a.id];
   }
 
   const linhas = ativosCarteira.map(a => {
     const o = ops[a.id]; if(!o || Math.abs(o.valor) < 0.005) return null;
     const depois = atual[a.id] + o.valor;
     return { a, o, antesPct: total ? atual[a.id] / total * 100 : 0, depoisPct: novoTotal ? depois / novoTotal * 100 : 0,
-             metaPct: novoTotal ? (alvo[a.id] || 0) / novoTotal * 100 : 0 };
+             metaPct: (simPct[a.id] || 0) };
   }).filter(Boolean).sort((x, y) => y.o.valor - x.o.valor);
 
-  metas.classes = metasCl;   /* relatório passa a mostrar as metas usadas na simulação */
-  ultimaSimulacao = { aporte, modo: modoAp, linhas, sobra: caixa, metasCl };
+  ultimaSimulacao = { aporte, linhas, sobra: caixa, alvos: { ...simPct } };
   const totCompra = linhas.filter(l => l.o.valor > 0).reduce((s, l) => s + l.o.valor, 0);
   const totVenda  = linhas.filter(l => l.o.valor < 0).reduce((s, l) => s - l.o.valor, 0);
   $('ap-resultado').innerHTML = `<div class="ap-res">` + (linhas.length ? linhas.map(l => {
     const compra = l.o.valor > 0, nome = esc(l.a.ticker || l.a.nome);
-    const qtd = l.o.cotas != null ? `${Math.abs(l.o.cotas)} ${Math.abs(l.o.cotas) === 1 ? 'cota' : 'cotas'} · ` : 'em R$ · ';
+    const qtd = l.o.cotas != null ? `${Math.abs(l.o.cotas)} ${Math.abs(l.o.cotas) === 1 ? 'cota' : 'cotas'} · R$ ${formatCurrency(precoDe(l.a))} cada` : 'valor em R$';
     return `<div class="ap-item"><div class="l1"><b>${nome}</b><span class="ap-tag ${compra ? 'c' : 'v'}">${compra ? 'Comprar' : 'Vender'}</span></div>
-      <div class="l1" style="margin-top:4px"><span class="meta">${qtd}${l.o.cotas != null ? 'R$ ' + formatCurrency(precoDe(l.a)) + ' cada' : NOME_TIPO[l.a.tipo]}</span>${vLR(Math.abs(l.o.valor))}</div>
-      <div class="l2">Peso na carteira: ${pctFmt(l.antesPct)} → ${pctFmt(l.depoisPct)} · meta ${pctFmt(l.metaPct)}</div></div>`;
-  }).join('') : '<div class="empty">A carteira já está dentro das metas.</div>') +
-  `<div class="result-line"><span class="lbl">Total a comprar</span><b>${vLR(totCompra)}</b></div>` +
-  (totVenda ? `<div class="result-line"><span class="lbl">Total a vender</span><b style="color:var(--bad)">${vLR(totVenda)}</b></div>` : '') +
-  `<div class="result-line"><span class="lbl">Sobra em caixa</span><b>${vLR(caixa)}</b></div>
-   <p class="sub">Simulação com as cotações da última atualização (atraso de ~30 min). Não considera corretagem, impostos ou a qualidade de cada ativo — a decisão é sua.</p></div>`;
+      <div class="l1" style="margin-top:4px"><span class="meta">${qtd}</span>${vLR(Math.abs(l.o.valor))}</div>
+      <div class="l2">Peso na carteira: ${pctFmt(l.antesPct)} → ${pctFmt(l.depoisPct)} · simulado ${pctFmt(l.metaPct)}</div></div>`;
+  }).join('') : '<div class="empty">Nada a mudar: a carteira já está nessa divisão.</div>') +
+  `<div class="result-line"><span class="lbl">Total a comprar</span><b>${vLR(totCompra)}</b></div>
+   <div class="result-line"><span class="lbl">Total a vender</span><b style="color:${totVenda ? 'var(--bad)' : 'inherit'}">${vLR(totVenda)}</b></div>
+   <div class="result-line"><span class="lbl">Aporte novo</span><b>${vLR(aporte)}</b></div>
+   <div class="result-line"><span class="lbl">Sobra em caixa</span><b>${vLR(caixa)}</b></div>
+   <p class="sub">Só simulação: nada foi alterado na carteira. Cotações da última atualização (~30 min de atraso), sem corretagem nem impostos.</p></div>`;
 }
 
 /* ---------- Relatório ---------- */
@@ -2870,19 +2833,17 @@ function linhasRelatorio(){
 function textoRelatorio(){
   const L = linhasRelatorio(), total = L.reduce((s, l) => s + l.atual, 0);
   const n = v => v == null ? '-' : formatCurrency(v);
-  let t = `CARTEIRA DE INVESTIMENTOS — ${formatDate(hojeStr())}\nValor total: R$ ${n(total)}\n\nPOR CLASSE (valor atual | % da carteira | meta)\n`;
+  let t = `CARTEIRA DE INVESTIMENTOS — ${formatDate(hojeStr())}\nValor total: R$ ${n(total)}\n\nPOR CLASSE (valor atual | % da carteira)\n`;
   classesNaCarteira().forEach(c => {
     const v = ativosCarteira.filter(a => a.tipo === c).reduce((s, a) => s + valorAtual(a), 0);
-    t += `- ${NOME_TIPO[c]}: R$ ${n(v)} | ${pctFmt(total ? v / total * 100 : 0)} | meta ${metas.classes[c] != null ? pctFmt(metas.classes[c]) : '-'}\n`;
+    t += `- ${NOME_TIPO[c]}: R$ ${n(v)} | ${pctFmt(total ? v / total * 100 : 0)}\n`;
   });
   t += `\nPOR ATIVO (classe | ativo | qtd un | preço médio R$ | cotação R$ | investido R$ | valor atual R$ | % carteira | resultado R$ | resultado % | variação do dia %)\n`;
   L.forEach(l => t += `- ${l.tipo} | ${l.ativo} | ${l.qtd ?? '-'} | ${n(l.pm)} | ${n(l.cotacao)} | ${n(l.investido)} | ${n(l.atual)} | ${pctFmt(l.pct)} | ${n(l.res)} | ${pctFmt(l.resPct)} | ${l.varDia == null ? '-' : pctFmt(l.varDia)}\n`);
-  const pesos = Object.entries(metas.pesos);
-  if(pesos.length) t += `\nPESOS DENTRO DA CLASSE (padrão 1): ${pesos.map(([k, v]) => k + '=' + v).join(', ')}\n`;
   if(ultimaSimulacao){
     const s = ultimaSimulacao;
-    t += `\nSIMULAÇÃO (${s.modo === 'comprar' ? 'só comprar' : 'rebalancear'}, aporte R$ ${n(s.aporte)})\n`;
-    s.linhas.forEach(l => t += `- ${l.o.valor > 0 ? 'Comprar' : 'Vender'} ${l.a.ticker || l.a.nome}: ${l.o.cotas != null ? Math.abs(l.o.cotas) + ' cotas, ' : ''}R$ ${n(Math.abs(l.o.valor))} (${pctFmt(l.antesPct)} → ${pctFmt(l.depoisPct)}, meta ${pctFmt(l.metaPct)})\n`);
+    t += `\nSIMULAÇÃO DE REBALANCEAMENTO (aporte novo R$ ${n(s.aporte)})\n`;
+    s.linhas.forEach(l => t += `- ${l.o.valor > 0 ? 'Comprar' : 'Vender'} ${l.a.ticker || l.a.nome}: ${l.o.cotas != null ? Math.abs(l.o.cotas) + ' cotas, ' : ''}R$ ${n(Math.abs(l.o.valor))} (${pctFmt(l.antesPct)} → ${pctFmt(l.depoisPct)}, simulado ${pctFmt(l.metaPct)})\n`);
     t += `Sobra: R$ ${n(s.sobra)}\n`;
   }
   return t;
@@ -2914,24 +2875,22 @@ function salvarCardCarteira(){
 
   c.fillStyle = cor.fundo; c.fillRect(0, 0, W, H);
   c.fillStyle = cor.azul; c.fillRect(0, 0, W, 210);
-  txt('elo · Carteira de investimentos', P, 78, 40, 800, '#ffffff');
+  txt('Elo · Carteira de investimentos', P, 78, 40, 800, '#ffffff');
   txt('Posição em ' + formatDate(hojeStr()), P, 124, 26, 400, '#c7d4f5');
   txt('Valor total', P, 178, 26, 400, '#c7d4f5');
   txt('R$ ' + formatCurrency(total), W - P, 178, 44, 800, '#ffffff', 'right');
 
   let y = 270;
   txt('POR CLASSE', P, y, 22, 800, cor.azul);
-  txt('Valor atual', 640, y, 22, 700, cor.cinza, 'right');
-  txt('% carteira', 830, y, 22, 700, cor.cinza, 'right');
-  txt('Meta', W - P, y, 22, 700, cor.cinza, 'right');
+  txt('Valor atual', 780, y, 22, 700, cor.cinza, 'right');
+  txt('% carteira', W - P, y, 22, 700, cor.cinza, 'right');
   y += 14; c.fillStyle = cor.linha; c.fillRect(P, y, W - 2 * P, 2);
   cls.forEach(t => {
     y += LH;
     const v = ativosCarteira.filter(a => a.tipo === t).reduce((s, a) => s + valorAtual(a), 0);
     txt(NOME_TIPO[t], P, y - 14, 28, 600);
-    rs(v, 420, 640, y - 14, 28);
-    txt(pctFmt(total ? v / total * 100 : 0), 830, y - 14, 28, 600, cor.texto, 'right');
-    txt(metas.classes[t] != null ? pctFmt(metas.classes[t]) : '—', W - P, y - 14, 28, 600, cor.cinza, 'right');
+    rs(v, 560, 780, y - 14, 28);
+    txt(pctFmt(total ? v / total * 100 : 0), W - P, y - 14, 28, 600, cor.texto, 'right');
   });
 
   y += 70;
