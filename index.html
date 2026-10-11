@@ -316,8 +316,8 @@
   .modal::-webkit-scrollbar{width:5px;} .modal::-webkit-scrollbar-thumb{background:#c3ccd8;border-radius:8px;}
   .modal__head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:2;}
   .modal__head h2{font-size:1rem;margin:0;color:var(--result-label);}
-  .modal__close{background:#eef2f7;border:1px solid #d5dce6;border-radius:10px;width:38px;height:38px;flex:0 0 auto;
-    display:inline-flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:600;cursor:pointer;
+  .modal__close{background:#eef2f7;border:1px solid #c9d2de;border-radius:10px;width:42px;height:42px;flex:0 0 auto;
+    display:inline-flex;align-items:center;justify-content:center;font-size:1.85rem;font-weight:500;cursor:pointer;
     color:#334155;line-height:1;padding:0 0 3px;}
   .modal__close:active{background:#dfe6f0;}
   .modal__body{padding:12px 16px 18px;}
@@ -418,6 +418,19 @@
     border-radius:12px;color:var(--result-text);cursor:pointer;font-variant-numeric:tabular-nums;}
   .tk-grade button:active{background:#e3eafc;}
   .tk-grade .tk-fn{color:var(--accent);background:#eef2fb;}
+  .tk-grade .tk-ic{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;}
+
+  /* ===== Atualização de saldo / rendimento ===== */
+  .upd-box{background:var(--panel);border:1px dashed #b9c4d4;border-radius:9px;padding:2px 11px 11px;margin-top:10px;}
+  .upd-box .fld{margin-top:9px;}
+  .upd-ult{font-size:.8rem;color:#475569;margin-top:9px;line-height:1.4;}
+  .tabs.seg{margin:0;}
+  .tabs.seg .tab{padding:7px 4px;font-size:.86rem;}
+  .rend{font-size:.8rem;color:#475569;margin-top:8px;padding-top:7px;border-top:1px dashed #e2e8f0;line-height:1.45;}
+  .rend b{font-variant-numeric:tabular-nums;}
+  .ativo-man .card-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+  .ativo-man .card-cols .val{min-width:0;width:100%;gap:4px;}
+  .ativo-man .card-cols .cv{font-size:.84rem;}
 
   .drawer-nav,.scroller,.auto-list{scrollbar-width:thin;scrollbar-color:#bcc6d4 transparent;}
   .drawer-nav::-webkit-scrollbar,.scroller::-webkit-scrollbar,.auto-list::-webkit-scrollbar{width:5px;}
@@ -442,6 +455,7 @@
   <symbol id="ic-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
   <symbol id="ic-alta" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></symbol>
   <symbol id="ic-queda" viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></symbol>
+  <symbol id="ic-apagar" viewBox="0 0 24 24"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></symbol>
   <symbol id="ic-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
   <symbol id="ic-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
   <symbol id="ic-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></symbol>
@@ -938,6 +952,21 @@
       <input class="in up" id="conta-nome" autocomplete="off">
       <label class="fld">Saldo livre (R$)</label>
       <input class="in num" inputmode="decimal" id="conta-valor" onfocus="this.select()">
+      <div class="upd-box">
+        <div class="upd-ult" id="conta-ult"></div>
+        <label class="fld">Data deste saldo</label>
+        <input class="in mid" type="date" id="conta-data">
+        <label class="fld">Entrou ou saiu dinheiro desde a última atualização?</label>
+        <div class="tabs seg" data-seg="conta">
+          <button class="tab active" data-mv="0">Não</button>
+          <button class="tab" data-mv="1">Aporte</button>
+          <button class="tab" data-mv="-1">Retirada</button>
+        </div>
+        <div id="conta-mov-box" style="display:none">
+          <label class="fld">Valor movimentado (R$)</label>
+          <input class="in num" inputmode="decimal" id="conta-mov">
+        </div>
+      </div>
       <input type="hidden" id="conta-edit-idx" value="-1">
     </div>
     <div class="modal__foot">
@@ -966,6 +995,25 @@
       </div>
       <label class="fld">Valor investido (R$)</label>
       <input class="in num" inputmode="decimal" id="ativo-valor" onfocus="this.select()">
+      <div id="ativo-manual" style="display:none">
+        <label class="fld">Valor atual (R$)</label>
+        <input class="in num" inputmode="decimal" id="ativo-atual">
+      <div class="upd-box">
+        <div class="upd-ult" id="ativo-ult"></div>
+        <label class="fld">Data deste saldo</label>
+        <input class="in mid" type="date" id="ativo-data">
+        <label class="fld">Entrou ou saiu dinheiro desde a última atualização?</label>
+        <div class="tabs seg" data-seg="ativo">
+          <button class="tab active" data-mv="0">Não</button>
+          <button class="tab" data-mv="1">Aporte</button>
+          <button class="tab" data-mv="-1">Retirada</button>
+        </div>
+        <div id="ativo-mov-box" style="display:none">
+          <label class="fld">Valor movimentado (R$)</label>
+          <input class="in num" inputmode="decimal" id="ativo-mov">
+        </div>
+      </div>
+      </div>
       <input type="hidden" id="ativo-edit-idx" value="-1">
     </div>
     <div class="modal__foot">
@@ -1047,7 +1095,7 @@
         <button onclick="tkTecla('7')">7</button><button onclick="tkTecla('8')">8</button><button onclick="tkTecla('9')">9</button>
         <button class="tk-fn" id="tk-extra" onclick="tkTecla('extra')">00</button>
         <button onclick="tkTecla('0')">0</button>
-        <button class="tk-fn" onclick="tkTecla('back')" aria-label="Apagar">⌫</button>
+        <button class="tk-fn" onclick="tkTecla('back')" aria-label="Apagar"><svg class="tk-ic"><use href="#ic-apagar"/></svg></button>
       </div>
     </div>
     <div class="modal__foot">
@@ -1097,7 +1145,8 @@ let vendas = [], contasManuais = [], ativosCarteira = [];
 let carrinhoAtual = [], vendaEditId = null, idParcelaEmAcao = null;
 let clienteAbertoAtual = null, vendaAbertaAtual = null;
 let filtroVendas = 'aberto';
-let clientesTel = {};   /* NOME DO CLIENTE -> telefone */
+let clientesTel = {};
+let histSaldos = {};    /* id da conta/ativo -> [{data, valor, movimento}] em ordem de data */   /* NOME DO CLIENTE -> telefone */
 let modoRecuperacao = false;
 let appJaCarregado = false;
 
@@ -1476,19 +1525,24 @@ async function carregarDados(){
   try{
     statusBanco('sincronizando','sync');
     const db = getDbClient();
-    const [contasRes, ativosRes, vendasRes, parcelasRes, configRes, clientesRes] = await Promise.all([
+    const [contasRes, ativosRes, vendasRes, parcelasRes, configRes, clientesRes, histRes] = await Promise.all([
       db.from('contas').select('*'),
       db.from('ativos').select('*'),
       db.from('vendas').select('id, numero, cliente_nome, itens, custo_total, valor_total, created_at'),
       db.from('parcelas').select('*'),
       db.from('config').select('chave, valor'),
-      db.from('clientes').select('nome, telefone')
+      db.from('clientes').select('nome, telefone'),
+      db.from('saldos_historico').select('ref_id, data, valor, movimento').order('data', { ascending:true })
     ]);
     if(contasRes.error) throw contasRes.error;
     if(ativosRes.error) throw ativosRes.error;
     if(vendasRes.error) throw vendasRes.error;
     if(parcelasRes.error) throw parcelasRes.error;
     if(configRes.error) throw configRes.error;
+    histSaldos = {};
+    if(!histRes.error) (histRes.data || []).forEach(h => {
+      (histSaldos[h.ref_id] = histSaldos[h.ref_id] || []).push({ data: String(h.data).slice(0,10), valor: parseFloat(h.valor) || 0, movimento: parseFloat(h.movimento) || 0 });
+    });
     clientesTel = {};
     if(!clientesRes.error) (clientesRes.data || []).forEach(c => { if(c.telefone) clientesTel[String(c.nome).toUpperCase()] = c.telefone; });
 
@@ -1508,7 +1562,8 @@ async function carregarDados(){
       return { id: a.id, nome: a.nome, conta: cObj ? cObj.nome : 'DESCONHECIDA', conta_id: a.conta_id, valor: parseFloat(a.valor) || 0,
                ticker: a.ticker || '', qtd: parseFloat(a.quantidade) || 0, pm: parseFloat(a.preco_medio) || 0,
                cotacao: a.cotacao != null ? parseFloat(a.cotacao) : null,
-               varDia: a.variacao_dia != null ? parseFloat(a.variacao_dia) : null, cotacaoEm: a.cotacao_em || null };
+               varDia: a.variacao_dia != null ? parseFloat(a.variacao_dia) : null, cotacaoEm: a.cotacao_em || null,
+               atualManual: a.valor_atual != null ? parseFloat(a.valor_atual) : null };
     });
 
     const parcelasDB = parcelasRes.data || [];
@@ -2413,12 +2468,14 @@ function enviarPosicao(cliente, event){
    ========================================================================= */
 function abrirModalNovaConta(){
   $('conta-nome').value = ''; $('conta-valor').value = ''; $('conta-edit-idx').value = '-1';
+  montarAtualizacao('conta', null);
   fecharModais(); abrirModal('modalNovaConta');
 }
 function editarConta(idx){
   $('conta-nome').value = contasManuais[idx].nome;
   $('conta-valor').value = valorParaCampo(contasManuais[idx].valor);
   $('conta-edit-idx').value = idx;
+  montarAtualizacao('conta', contasManuais[idx].id);
   fecharModais(); abrirModal('modalNovaConta');
 }
 async function salvarConta(){
@@ -2428,10 +2485,15 @@ async function salvarConta(){
   if(!nome){ toast('Informe a descrição da conta.', 'err'); return; }
   carregando(true);
   const db = getDbClient();
-  let error;
-  if(idx === -1) ({ error } = await db.from('contas').insert({ nome, saldo: valor }).select());
-  else ({ error } = await db.from('contas').update({ nome, saldo: valor }).eq('id', contasManuais[idx].id).select());
+  let error, refId = idx === -1 ? null : contasManuais[idx].id;
+  const valorAntigo = idx === -1 ? 0 : contasManuais[idx].valor;
+  if(idx === -1){
+    let novo; ({ data: novo, error } = await db.from('contas').insert({ nome, saldo: valor }).select('id').single());
+    if(novo) refId = novo.id;
+  }
+  else ({ error } = await db.from('contas').update({ nome, saldo: valor }).eq('id', refId).select());
   if(error){ carregando(false); toast('Erro ao salvar conta: ' + error.message, 'err'); return; }
+  if(refId) await gravarHistorico('conta', refId, valor, valorAntigo, lerAtualizacao('conta'));
   fecharModais(); await carregarDados(); toast('Conta salva.', 'ok');
 }
 async function excluirConta(idx){
@@ -2447,7 +2509,8 @@ function abrirModalAtivo(){
   const sel = $('ativo-conta');
   sel.innerHTML = '<option value="">Selecione a conta</option>' + contasManuais.map(c => `<option value="${c.id}">${esc(c.nome)}</option>`).join('');
   $('ativo-nome').value = ''; $('ativo-valor').value = ''; $('ativo-edit-idx').value = '-1';
-  $('ativo-qtd').value = ''; $('ativo-pm').value = ''; calcInvestido();
+  $('ativo-qtd').value = ''; $('ativo-pm').value = ''; $('ativo-atual').value = '';
+  montarAtualizacao('ativo', null); calcInvestido();
   fecharModais(); abrirModal('modalAtivo');
 }
 function editarAtivo(idx){
@@ -2458,6 +2521,8 @@ function editarAtivo(idx){
   $('ativo-qtd').value = ativosCarteira[idx].qtd ? String(ativosCarteira[idx].qtd).replace('.', ',') : '';
   $('ativo-pm').value = ativosCarteira[idx].pm ? valorParaCampo(ativosCarteira[idx].pm) : '';
   $('ativo-edit-idx').value = idx;
+  $('ativo-atual').value = ativosCarteira[idx].ticker ? '' : valorParaCampo(valorAtual(ativosCarteira[idx]));
+  montarAtualizacao('ativo', ativosCarteira[idx].id);
   calcInvestido();
 }
 async function excluirAtivo(idx){
@@ -2477,15 +2542,22 @@ async function salvarAtivo(){
   if(!contaId || !nome){ toast('Escolha a conta e informe o nome do ativo.', 'err'); return; }
   if(ticker && qtd <= 0){ toast('Informe a quantidade que você tem de ' + ticker + '.', 'err'); return; }
   if(ticker && pm > 0) valor = Math.round(qtd * pm * 100) / 100;
-  const reg = { conta_id: contaId, nome, valor, ticker: ticker || null, quantidade: ticker ? qtd : null, preco_medio: ticker ? (pm || null) : null };
+  const campoAtual = $('ativo-atual').value.trim();
+  const atualManual = ticker ? null : (campoAtual ? lerValorCampo(campoAtual) : valor);
+  const reg = { conta_id: contaId, nome, valor, ticker: ticker || null, quantidade: ticker ? qtd : null, preco_medio: ticker ? (pm || null) : null,
+                valor_atual: atualManual };
   const anterior = idx === -1 ? null : ativosCarteira[idx];
   if(!ticker || (anterior && anterior.ticker !== ticker)) Object.assign(reg, { cotacao: null, variacao_dia: null, cotacao_em: null });
   carregando(true);
   const db = getDbClient();
-  let error;
-  if(idx === -1) ({ error } = await db.from('ativos').insert(reg).select());
-  else ({ error } = await db.from('ativos').update(reg).eq('id', anterior.id).select());
+  let error, refId = anterior ? anterior.id : null;
+  if(idx === -1){
+    let novo; ({ data: novo, error } = await db.from('ativos').insert(reg).select('id').single());
+    if(novo) refId = novo.id;
+  }
+  else ({ error } = await db.from('ativos').update(reg).eq('id', refId).select());
   if(error){ carregando(false); toast('Erro ao salvar ativo: ' + error.message, 'err'); return; }
+  if(!ticker && refId) await gravarHistorico('ativo', refId, atualManual, anterior ? valorAtual(anterior) : 0, lerAtualizacao('ativo'));
   fecharModais(); await carregarDados(); toast('Ativo salvo.', 'ok');
   if(ticker) atualizarCotacoes(false);
 }
@@ -2493,7 +2565,69 @@ async function salvarAtivo(){
 /* Valor atual do ativo: com código B3 e cotação = quantidade × cotação; senão, o valor investido */
 function valorAtual(a){
   if(a && a.ticker && a.cotacao != null && a.qtd > 0) return Math.round(a.qtd * a.cotacao * 100) / 100;
+  if(a && !a.ticker && a.atualManual != null) return a.atualManual;
   return a ? (a.valor || 0) : 0;
+}
+
+/* =========================================================================
+   RENDIMENTO ENTRE ATUALIZAÇÕES
+   Compara as duas últimas atualizações de saldo, descontando aporte/retirada.
+   ========================================================================= */
+function diasEntre(a, b){ return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000); }
+function rendimentoDe(refId){
+  const h = histSaldos[refId];
+  if(!h || h.length < 2) return null;
+  const a = h[h.length - 2], b = h[h.length - 1];
+  const ganho = b.valor - a.valor - b.movimento;
+  const base = a.valor + Math.max(b.movimento, 0);
+  const pct = base > 0 ? ganho / base * 100 : null;
+  const dias = diasEntre(a.data, b.data);
+  const mensal = (pct != null && dias > 0) ? (Math.pow(1 + pct / 100, 30 / dias) - 1) * 100 : null;
+  return { de: a.data, ate: b.data, anterior: a.valor, atual: b.valor, mov: b.movimento, ganho, pct, dias, mensal };
+}
+function linhaRendimento(refId){
+  const h = histSaldos[refId];
+  if(!h || !h.length) return '';
+  const r = rendimentoDe(refId);
+  if(!r) return `<div class="rend">Atualizado em ${formatDate(h[h.length - 1].data)}. O rendimento aparece a partir da próxima atualização.</div>`;
+  const cor = r.ganho >= 0 ? 'var(--ok)' : 'var(--bad)';
+  const mov = r.mov ? ` · ${r.mov > 0 ? 'aporte' : 'retirada'} de R$ ${formatCurrency(Math.abs(r.mov))} descontado` : '';
+  return `<div class="rend">Rendeu de ${formatDate(r.de)} a ${formatDate(r.ate)} (${r.dias} ${r.dias === 1 ? 'dia' : 'dias'}):
+    <b style="color:${cor}">${r.ganho >= 0 ? '+' : '-'} R$ ${formatCurrency(Math.abs(r.ganho))}</b> ${r.pct != null ? tendencia(r.pct) : ''}
+    ${r.mensal != null && r.dias !== 30 ? `<span style="color:#64748b">≈ ${r.mensal.toFixed(2).replace('.',',')}% ao mês</span>` : ''}${mov}</div>`;
+}
+
+/* Bloco "Data deste saldo / aporte / retirada" dos modais de conta e ativo */
+function montarAtualizacao(pfx, refId){
+  const h = refId ? histSaldos[refId] : null;
+  const ult = h && h.length ? h[h.length - 1] : null;
+  $(pfx + '-ult').innerHTML = ult
+    ? `Última atualização: <b>${formatDate(ult.data)}</b> — R$ ${formatCurrency(ult.valor)}`
+    : 'Primeiro registro deste saldo.';
+  $(pfx + '-data').value = hojeStr();
+  $(pfx + '-mov').value = '';
+  marcarMovimento(pfx, '0');
+}
+function marcarMovimento(pfx, mv){
+  document.querySelectorAll(`[data-seg="${pfx}"] .tab`).forEach(t => t.classList.toggle('active', t.dataset.mv === mv));
+  $(pfx + '-mov-box').style.display = mv === '0' ? 'none' : 'block';
+}
+function lerAtualizacao(pfx){
+  const ativo = document.querySelector(`[data-seg="${pfx}"] .tab.active`);
+  const sinal = ativo ? Number(ativo.dataset.mv) : 0;
+  return { data: $(pfx + '-data').value || hojeStr(), movimento: sinal * lerValorCampo($(pfx + '-mov').value) };
+}
+document.querySelectorAll('.tabs.seg').forEach(seg => seg.addEventListener('click', e => {
+  const t = e.target.closest('.tab'); if(t) marcarMovimento(seg.dataset.seg, t.dataset.mv);
+}));
+async function gravarHistorico(tipo, refId, valorNovo, valorAntigo, upd){
+  const h = histSaldos[refId];
+  const mudou = !h || !h.length || Math.abs(valorNovo - valorAntigo) > 0.004 || upd.movimento !== 0 || h[h.length - 1].data !== upd.data;
+  if(!mudou) return;
+  const { error } = await getDbClient().from('saldos_historico').upsert(
+    { user_id: usuarioId, tipo, ref_id: refId, data: upd.data, valor: valorNovo, movimento: upd.movimento },
+    { onConflict: 'ref_id,data' }).select();
+  if(error) toast('Saldo salvo, mas o histórico não: ' + error.message, 'err');
 }
 /* Padrão de código da B3: 4 letras + 1 ou 2 números (ITUB4, MXRF11, AAPL34, ITUB4F) */
 function ehCodigoB3(txt){ return /^[A-Z]{4}\d{1,2}F?$/.test(String(txt || '').trim().toUpperCase()); }
@@ -2506,6 +2640,7 @@ function calcInvestido(){
     ? '<b style="color:var(--ok)">Código da B3 reconhecido</b> — a cotação vem automática. Informe quantidade e preço médio.'
     : 'Digite o código da B3 (ITUB4, MXRF11) para ter cotação. Outros nomes (CDB, previdência) usam o valor investido.';
   $('ativo-b3-campos').style.display = tk ? 'block' : 'none';
+  $('ativo-manual').style.display = (!tk && $('ativo-nome').value.trim()) ? 'block' : 'none';
   const qtd = lerValorCampo($('ativo-qtd').value), pm = lerValorCampo($('ativo-pm').value);
   const auto = !!(tk && pm > 0);
   $('ativo-valor').disabled = auto;
@@ -2640,11 +2775,21 @@ function renderizarAtivos(){
             <button class="iconbtn danger" onclick="event.stopPropagation();excluirAtivo(${i})">${ic('trash')}</button>
           </div>`;
       if(!ativo.ticker){
-        return `<div class="card-item">
-          <div class="card-top" style="border:none;padding:0">
-            <div><h3>${esc(ativo.nome)}</h3><div class="meta" style="color:var(--accent);font-weight:700">${vLR(ativo.valor)}</div></div>
+        const atualM = valorAtual(ativo), resM = atualM - ativo.valor;
+        const pctM = ativo.valor > 0 ? resM / ativo.valor * 100 : 0;
+        const corM = resM >= 0 ? 'var(--ok)' : 'var(--bad)';
+        return `<div class="card-item ativo-man">
+          <div class="card-top">
+            <div><h3>${esc(ativo.nome)}</h3><div class="meta">sem cotação na bolsa · valor atualizado por você</div></div>
             ${botoes}
           </div>
+          <div class="card-cols">
+            <div><div class="cl">Investido</div><div class="cv">${vLR(ativo.valor)}</div></div>
+            <div><div class="cl">Valor atual</div><div class="cv" style="color:var(--accent)">${vLR(atualM)}</div></div>
+            <div><div class="cl">Resultado</div><div class="cv" style="color:${corM}">${vLR(resM)}</div>
+              <div class="meta" style="color:${corM};font-weight:700">${resM >= 0 ? '+' : '-'}${Math.abs(pctM).toFixed(2).replace('.',',')}%</div></div>
+          </div>
+          ${linhaRendimento(ativo.id)}
         </div>`;
       }
       const temCot = ativo.cotacao != null && ativo.qtd > 0;
@@ -2714,6 +2859,7 @@ function renderizarContas(lucroVendas){
         <div><div class="cl">Em ativos</div><div class="cv" style="color:#6d28d9">${vLR(somaAtivos)}</div></div>
         <div><div class="cl">Total</div><div class="cv" style="color:var(--accent)">${vLR(totalConta)}</div></div>
       </div>
+      ${linhaRendimento(c.id)}
     </div>`;
   });
   grid.innerHTML = html;
