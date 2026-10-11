@@ -420,6 +420,26 @@
   .tk-grade .tk-fn{color:var(--accent);background:#eef2fb;}
   .tk-grade .tk-ic{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;}
 
+  /* ===== Aporte e metas ===== */
+  .ap-cab,.ap-lin{display:grid;grid-template-columns:minmax(0,1fr) 64px 92px;gap:8px;align-items:center;}
+  .ap-cab{font-size:.72rem;font-weight:700;color:#64748b;padding:0 2px 5px;border-bottom:1px solid #eef1f6;}
+  .ap-cab span:not(:first-child){text-align:right;}
+  .ap-lin{padding:7px 2px;border-bottom:1px solid #f2f5f9;font-size:.88rem;}
+  .ap-lin .hj{text-align:right;color:#64748b;font-variant-numeric:tabular-nums;}
+  .ap-lin input{padding:6px 8px;font-size:15px;}
+  .ap-soma{display:flex;justify-content:space-between;font-size:.84rem;font-weight:700;padding:8px 2px 0;}
+  .ap-peso{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 2px;border-bottom:1px solid #f2f5f9;font-size:.86rem;}
+  .ap-peso .stp{display:flex;align-items:center;gap:6px;}
+  .ap-peso .stp button{width:34px;height:32px;border:1px solid var(--border);background:#fff;border-radius:8px;font-size:1.1rem;font-weight:700;color:var(--accent);cursor:pointer;}
+  .ap-peso .stp b{min-width:22px;text-align:center;font-variant-numeric:tabular-nums;}
+  .ap-grupo{font-size:.74rem;font-weight:800;color:var(--result-label);margin:12px 2px 2px;text-transform:uppercase;letter-spacing:.03em;}
+  .ap-res{margin-top:12px;}
+  .ap-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:7px;}
+  .ap-item .l1{display:flex;justify-content:space-between;gap:8px;align-items:center;}
+  .ap-item .l2{font-size:.78rem;color:#64748b;margin-top:3px;font-variant-numeric:tabular-nums;}
+  .ap-tag{font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:20px;}
+  .ap-tag.c{background:var(--okbg);color:var(--ok);} .ap-tag.v{background:var(--badbg);color:var(--bad);}
+
   /* ===== Atualização de saldo / rendimento ===== */
   .upd-box{background:var(--panel);border:1px dashed #b9c4d4;border-radius:9px;padding:2px 11px 11px;margin-top:10px;}
   .upd-box .fld{margin-top:9px;}
@@ -542,6 +562,7 @@
       <button class="dnav" data-view="v-vendas"><svg class="dic"><use href="#ic-cart"/></svg> Vendas <span class="n" id="nav-venc" style="display:none">0</span></button>
       <button class="dnav" data-view="v-resultado"><svg class="dic"><use href="#ic-chart"/></svg> Resultado</button>
       <button class="dnav" data-view="v-patrimonio"><svg class="dic"><use href="#ic-wallet"/></svg> Patrimônio</button>
+      <button class="dnav" data-view="v-aporte"><svg class="dic"><use href="#ic-pie"/></svg> Aporte e metas</button>
       <button class="dnav" data-view="v-lic" id="nav-admin" style="display:none;"><svg class="dic"><use href="#ic-shield"/></svg> Licenças</button>
       <button class="dnav" data-view="v-config"><svg class="dic"><use href="#ic-gear"/></svg> Configurações</button>
       <button class="dnav" data-view="v-sobre"><svg class="dic"><use href="#ic-info"/></svg> Sobre</button>
@@ -767,7 +788,7 @@
               </div>
             </div>
             <div class="mercado" style="max-width:var(--col);width:100%;margin-left:auto;margin-right:auto">
-              <span>Dólar comercial <b id="mk-dolar">—</b> <span id="mk-dolar-var"></span></span>
+              <span><span id="mk-dolar-lbl">Dólar comercial</span> <b id="mk-dolar">—</b> <span id="mk-dolar-var"></span></span>
               <span id="mk-hora">cotações ~30 min de atraso</span>
             </div>
             <div class="tabs mini" id="filtro-tend">
@@ -781,6 +802,44 @@
         </div>
       </div>
       <div class="dots" data-dots="vpPat"><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
+    </section>
+
+    <!-- APORTE E METAS -->
+    <section class="view" id="v-aporte">
+      <div class="scroller">
+        <div class="pane" style="margin-bottom:9px">
+          <h3>Metas por classe</h3>
+          <div class="ap-cab"><span>Classe</span><span>Hoje</span><span>Meta</span></div>
+          <div id="ap-classes"></div>
+          <div class="ap-soma" id="ap-soma"></div>
+          <p class="sub">Dentro de cada classe os ativos dividem a meta por igual. Use − e + para dar mais peso a algum.</p>
+          <div id="ap-pesos"></div>
+          <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="salvarMetas()">Salvar metas</button>
+        </div>
+
+        <div class="pane" style="margin-bottom:9px">
+          <h3>Simular aporte</h3>
+          <label class="fld" style="margin-top:0">Valor do aporte (R$)</label>
+          <input class="in num" inputmode="decimal" id="ap-valor">
+          <label class="fld">Modo</label>
+          <div class="tabs seg" id="ap-modo">
+            <button class="tab active" data-modo="comprar" onclick="modoAporte('comprar')">Só comprar</button>
+            <button class="tab" data-modo="rebalancear" onclick="modoAporte('rebalancear')">Rebalancear</button>
+          </div>
+          <p class="sub" id="ap-modo-txt">O aporte vai primeiro para o que está mais abaixo da meta. Nada é vendido.</p>
+          <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="simularAporte()">Simular</button>
+          <div id="ap-resultado"></div>
+        </div>
+
+        <div class="pane">
+          <h3>Relatório da carteira</h3>
+          <p class="sub" style="margin-top:0">Posição por ativo e por classe, com as metas e a última simulação. Para colar numa IA ou guardar.</p>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-primary" style="flex:1" onclick="copiarRelatorio()">Copiar texto</button>
+            <button class="btn btn-ghost" style="flex:1" onclick="baixarCsv()">Baixar planilha (CSV)</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- LICENÇAS -->
@@ -984,6 +1043,11 @@
       <select class="in" id="ativo-conta"></select>
       <label class="fld">Ativo</label>
       <input class="in up" id="ativo-nome" autocomplete="off" placeholder="ITUB4, MXRF11 ou CDB INTER" oninput="calcInvestido()">
+      <label class="fld">Tipo</label>
+      <select class="in" id="ativo-tipo" onchange="this.dataset.manual='1'">
+        <option value="ACAO">Ação</option><option value="FII">Fundo imobiliário (FII)</option>
+        <option value="ETF">ETF</option><option value="BDR">BDR</option><option value="RF">Renda fixa / outros</option>
+      </select>
       <div class="b3-box">
         <p class="sub" id="ativo-b3-hint" style="margin-top:8px"></p>
         <div id="ativo-b3-campos" style="display:none">
@@ -1146,7 +1210,8 @@ let carrinhoAtual = [], vendaEditId = null, idParcelaEmAcao = null;
 let clienteAbertoAtual = null, vendaAbertaAtual = null;
 let filtroVendas = 'aberto';
 let clientesTel = {};
-let histSaldos = {};    /* id da conta/ativo -> [{data, valor, movimento}] em ordem de data */   /* NOME DO CLIENTE -> telefone */
+let histSaldos = {};
+let metas = { classes: {}, pesos: {} };   /* classes: {FII:60, ACAO:40}; pesos: {MXRF11:2} */    /* id da conta/ativo -> [{data, valor, movimento}] em ordem de data */   /* NOME DO CLIENTE -> telefone */
 let modoRecuperacao = false;
 let appJaCarregado = false;
 
@@ -1181,7 +1246,7 @@ function responderConfirm(valor){
 /* =========================================================================
    NAVEGAÇÃO
    ========================================================================= */
-const TITULOS = {'v-geral':'Início','v-resultado':'Resultado','v-vendas':'Vendas','v-patrimonio':'Patrimônio',
+const TITULOS = {'v-aporte':'Aporte e metas','v-geral':'Início','v-resultado':'Resultado','v-vendas':'Vendas','v-patrimonio':'Patrimônio',
                  'v-lic':'Licenças','v-config':'Configurações','v-sobre':'Sobre'};
 
 /* ===== Telas deslizantes (abas + arraste + pontinhos) ===== */
@@ -1247,6 +1312,7 @@ function abrirView(id){
   fecharDetalheVenda(); fecharDetalheCliente();
   if(id === 'v-lic') renderLicencas();
   if(id === 'v-config') carregarConfigTela();
+  if(id === 'v-aporte') renderAporte();
   atualizarTelas();
 }
 document.querySelectorAll('.dnav[data-view]').forEach(b => b.addEventListener('click', () => abrirView(b.dataset.view)));
@@ -1289,10 +1355,10 @@ function tkRotulo(el){
 function abrirTeclado(el){
   if(el.disabled) return;
   tkAlvo = el;
-  tkModo = el.dataset.teclado === 'qtd' ? 'qtd' : 'moeda';
+  tkModo = (el.dataset.teclado === 'qtd' || el.dataset.teclado === 'pct') ? 'qtd' : 'moeda';
   tkBuf = '';
   $('tk-titulo').textContent = tkRotulo(el);
-  $('tk-pref').textContent = tkModo === 'moeda' ? 'R$' : 'un';
+  $('tk-pref').textContent = tkModo === 'moeda' ? 'R$' : (el.dataset.teclado === 'pct' ? '%' : 'un');
   $('tk-extra').textContent = tkModo === 'moeda' ? '00' : ',';
   const antes = el.value.trim();
   $('tk-antes').textContent = (antes && lerValorCampo(antes) !== 0)
@@ -1551,6 +1617,8 @@ async function carregarDados(){
         configRentabilidade = { data: row.valor.data || hojeInicialStr, valor: parseFloat(row.valor.valor) || 0 };
       if(row.chave === 'pix' && row.valor)
         pixConfig = { chave: row.valor.chave || '', nome: row.valor.nome || '' };
+      if(row.chave === 'metas' && row.valor)
+        metas = { classes: row.valor.classes || {}, pesos: row.valor.pesos || {} };
       if(row.chave === 'perfil' && row.valor)
         perfil = { nome: row.valor.nome || '', sobrenome: row.valor.sobrenome || '', telefone: row.valor.telefone || '' };
     });
@@ -1563,7 +1631,8 @@ async function carregarDados(){
                ticker: a.ticker || '', qtd: parseFloat(a.quantidade) || 0, pm: parseFloat(a.preco_medio) || 0,
                cotacao: a.cotacao != null ? parseFloat(a.cotacao) : null,
                varDia: a.variacao_dia != null ? parseFloat(a.variacao_dia) : null, cotacaoEm: a.cotacao_em || null,
-               atualManual: a.valor_atual != null ? parseFloat(a.valor_atual) : null };
+               atualManual: a.valor_atual != null ? parseFloat(a.valor_atual) : null,
+               tipo: a.tipo || tipoProvavel(a.ticker) };
     });
 
     const parcelasDB = parcelasRes.data || [];
@@ -2510,6 +2579,7 @@ function abrirModalAtivo(){
   sel.innerHTML = '<option value="">Selecione a conta</option>' + contasManuais.map(c => `<option value="${c.id}">${esc(c.nome)}</option>`).join('');
   $('ativo-nome').value = ''; $('ativo-valor').value = ''; $('ativo-edit-idx').value = '-1';
   $('ativo-qtd').value = ''; $('ativo-pm').value = ''; $('ativo-atual').value = '';
+  $('ativo-tipo').value = 'ACAO'; delete $('ativo-tipo').dataset.manual;
   montarAtualizacao('ativo', null); calcInvestido();
   fecharModais(); abrirModal('modalAtivo');
 }
@@ -2522,6 +2592,8 @@ function editarAtivo(idx){
   $('ativo-pm').value = ativosCarteira[idx].pm ? valorParaCampo(ativosCarteira[idx].pm) : '';
   $('ativo-edit-idx').value = idx;
   $('ativo-atual').value = ativosCarteira[idx].ticker ? '' : valorParaCampo(valorAtual(ativosCarteira[idx]));
+  $('ativo-tipo').value = ativosCarteira[idx].tipo || tipoProvavel(ativosCarteira[idx].ticker);
+  $('ativo-tipo').dataset.manual = '1';
   montarAtualizacao('ativo', ativosCarteira[idx].id);
   calcInvestido();
 }
@@ -2545,7 +2617,7 @@ async function salvarAtivo(){
   const campoAtual = $('ativo-atual').value.trim();
   const atualManual = ticker ? null : (campoAtual ? lerValorCampo(campoAtual) : valor);
   const reg = { conta_id: contaId, nome, valor, ticker: ticker || null, quantidade: ticker ? qtd : null, preco_medio: ticker ? (pm || null) : null,
-                valor_atual: atualManual };
+                valor_atual: atualManual, tipo: $('ativo-tipo').value || tipoProvavel(ticker) };
   const anterior = idx === -1 ? null : ativosCarteira[idx];
   if(!ticker || (anterior && anterior.ticker !== ticker)) Object.assign(reg, { cotacao: null, variacao_dia: null, cotacao_em: null });
   carregando(true);
@@ -2629,6 +2701,209 @@ async function gravarHistorico(tipo, refId, valorNovo, valorAntigo, upd){
     { onConflict: 'ref_id,data' }).select();
   if(error) toast('Saldo salvo, mas o histórico não: ' + error.message, 'err');
 }
+/* Palpite do tipo pelo código; o usuário corrige no cadastro (BOVA11 é ETF, TAEE11 é ação) */
+function tipoProvavel(tk){
+  tk = String(tk || '').toUpperCase();
+  if(!tk) return 'RF';
+  if(/^[A-Z]{4}3[2-5]$/.test(tk)) return 'BDR';
+  if(/^[A-Z]{4}11$/.test(tk)) return 'FII';
+  return 'ACAO';
+}
+const NOME_TIPO = { ACAO:'Ações', FII:'Fundos imobiliários', ETF:'ETFs', BDR:'BDRs', RF:'Renda fixa / outros' };
+
+/* =========================================================================
+   APORTE E METAS
+   ========================================================================= */
+let modoAp = 'comprar', ultimaSimulacao = null;
+function classesNaCarteira(){ return Object.keys(NOME_TIPO).filter(t => ativosCarteira.some(a => a.tipo === t)); }
+function pesoDe(a){ const k = a.ticker || a.nome; return metas.pesos[k] != null ? metas.pesos[k] : 1; }
+function pctFmt(n){ return (Number(n) || 0).toFixed(1).replace('.', ',') + '%'; }
+
+function renderAporte(){
+  const total = ativosCarteira.reduce((s, a) => s + valorAtual(a), 0);
+  const cls = classesNaCarteira();
+  /* sem meta salva: começa com a divisão de hoje, arredondada */
+  if(!Object.keys(metas.classes).length && total > 0)
+    cls.forEach(t => metas.classes[t] = Math.round(ativosCarteira.filter(a => a.tipo === t).reduce((s, a) => s + valorAtual(a), 0) / total * 100));
+  $('ap-classes').innerHTML = cls.map(t => {
+    const v = ativosCarteira.filter(a => a.tipo === t).reduce((s, a) => s + valorAtual(a), 0);
+    return `<div class="ap-lin"><span>${NOME_TIPO[t]}</span><span class="hj">${pctFmt(total ? v / total * 100 : 0)}</span>
+      <input class="in num" data-teclado="pct" data-classe="${t}" value="${String(metas.classes[t] ?? 0).replace('.', ',')}" oninput="somaMetas()"></div>`;
+  }).join('') || '<div class="empty">Cadastre ativos na Carteira primeiro.</div>';
+  $('ap-pesos').innerHTML = cls.map(t => {
+    const lista = ativosCarteira.filter(a => a.tipo === t);
+    if(lista.length < 2) return '';
+    return `<div class="ap-grupo">${NOME_TIPO[t]}</div>` + lista.map(a => {
+      const k = esc(a.ticker || a.nome);
+      return `<div class="ap-peso"><span>${k}</span><span class="stp">
+        <button onclick="mudarPeso('${k}',-1)">−</button><b id="peso-${k.replace(/\W/g,'_')}">${pesoDe(a)}</b><button onclick="mudarPeso('${k}',1)">+</button></span></div>`;
+    }).join('');
+  }).join('');
+  ligarTeclado();
+  somaMetas();
+}
+function somaMetas(){
+  let soma = 0;
+  document.querySelectorAll('[data-classe]').forEach(i => soma += lerValorCampo(i.value));
+  const ok = Math.abs(soma - 100) < 0.05;
+  $('ap-soma').innerHTML = `<span>Soma das metas</span><span style="color:${ok ? 'var(--ok)' : 'var(--bad)'}">${pctFmt(soma)}${ok ? '' : ' · precisa dar 100%'}</span>`;
+  return ok;
+}
+function lerMetasTela(){
+  const c = {};
+  document.querySelectorAll('[data-classe]').forEach(i => c[i.dataset.classe] = lerValorCampo(i.value));
+  return c;
+}
+function mudarPeso(k, d){
+  const atual = metas.pesos[k] != null ? metas.pesos[k] : 1;
+  const novo = Math.max(0, Math.min(9, atual + d));
+  if(novo === 1) delete metas.pesos[k]; else metas.pesos[k] = novo;
+  const el = $('peso-' + k.replace(/\W/g, '_')); if(el) el.textContent = novo;
+}
+async function salvarMetas(){
+  if(!somaMetas()){ toast('As metas por classe precisam somar 100%.', 'err'); return; }
+  metas.classes = lerMetasTela();
+  carregando(true);
+  const { error } = await getDbClient().from('config').upsert(
+    { chave:'metas', user_id: usuarioId, valor: metas, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id,chave' }).select();
+  carregando(false);
+  if(error){ toast('Não foi possível salvar as metas: ' + error.message, 'err'); return; }
+  toast('Metas salvas.', 'ok');
+}
+function modoAporte(m){
+  modoAp = m;
+  document.querySelectorAll('#ap-modo .tab').forEach(t => t.classList.toggle('active', t.dataset.modo === m));
+  $('ap-modo-txt').textContent = m === 'comprar'
+    ? 'O aporte vai primeiro para o que está mais abaixo da meta. Nada é vendido.'
+    : 'Mostra também o que vender do que está acima da meta para comprar o que está abaixo.';
+}
+
+/* Meta em R$ de cada ativo para um patrimônio total "alvoTotal" */
+function metasPorAtivo(alvoTotal, metasCl){
+  const m = {};
+  Object.keys(metasCl).forEach(t => {
+    const lista = ativosCarteira.filter(a => a.tipo === t);
+    const somaP = lista.reduce((s, a) => s + pesoDe(a), 0);
+    lista.forEach(a => m[a.id] = somaP ? alvoTotal * (metasCl[t] / 100) * pesoDe(a) / somaP : 0);
+  });
+  return m;
+}
+function precoDe(a){ return (a.ticker && a.cotacao) ? a.cotacao : null; }   /* null = sem cota (renda fixa: aporta em R$) */
+
+function simularAporte(){
+  if(!somaMetas()){ toast('As metas por classe precisam somar 100%.', 'err'); return; }
+  const metasCl = lerMetasTela();
+  const aporte = lerValorCampo($('ap-valor').value);
+  if(modoAp === 'comprar' && aporte <= 0){ toast('Informe o valor do aporte.', 'err'); return; }
+  const atual = {}; ativosCarteira.forEach(a => atual[a.id] = valorAtual(a));
+  const total = Object.values(atual).reduce((s, v) => s + v, 0);
+  const novoTotal = total + aporte;
+  const alvo = metasPorAtivo(novoTotal, metasCl);
+  const ops = {};   /* id -> {cotas, valor} (valor negativo = venda) */
+  let caixa = aporte;
+
+  if(modoAp === 'rebalancear'){
+    ativosCarteira.forEach(a => {
+      const dif = (alvo[a.id] || 0) - atual[a.id], pr = precoDe(a);
+      if(pr){
+        const cotas = dif < 0 ? -Math.min(Math.floor(-dif / pr), Math.floor(a.qtd)) : 0;
+        if(cotas) { ops[a.id] = { cotas, valor: cotas * pr }; caixa -= cotas * pr; }
+      } else if(dif < -0.5){ ops[a.id] = { cotas: null, valor: dif }; caixa -= dif; }
+    });
+  }
+  /* compras: preenche o que está mais abaixo da meta, uma cota por vez */
+  const faltas = () => ativosCarteira.map(a => ({ a, falta: (alvo[a.id] || 0) - atual[a.id] - ((ops[a.id] || {}).valor || 0) }))
+                                     .filter(x => x.falta > 0.5).sort((x, y) => (y.falta / (alvo[y.a.id] || 1)) - (x.falta / (alvo[x.a.id] || 1)));
+  /* renda fixa entra na mesma fila, em parcelas de até R$ 100 */
+  for(let guarda = 0; guarda < 20000 && caixa > 0.009; guarda++){
+    const cand = faltas().find(x => precoDe(x.a) ? precoDe(x.a) <= caixa : true);
+    if(!cand) break;
+    const pr = precoDe(cand.a);
+    if(pr){
+      const o = ops[cand.a.id] || { cotas: 0, valor: 0 };
+      o.cotas = (o.cotas || 0) + 1; o.valor += pr; ops[cand.a.id] = o; caixa -= pr;
+    } else {
+      const v = Math.min(cand.falta, 100, caixa);
+      const o = ops[cand.a.id] || { cotas: null, valor: 0 };
+      o.valor += v; ops[cand.a.id] = o; caixa -= v;
+    }
+  }
+
+  const linhas = ativosCarteira.map(a => {
+    const o = ops[a.id]; if(!o || Math.abs(o.valor) < 0.005) return null;
+    const depois = atual[a.id] + o.valor;
+    return { a, o, antesPct: total ? atual[a.id] / total * 100 : 0, depoisPct: novoTotal ? depois / novoTotal * 100 : 0,
+             metaPct: novoTotal ? (alvo[a.id] || 0) / novoTotal * 100 : 0 };
+  }).filter(Boolean).sort((x, y) => y.o.valor - x.o.valor);
+
+  metas.classes = metasCl;   /* relatório passa a mostrar as metas usadas na simulação */
+  ultimaSimulacao = { aporte, modo: modoAp, linhas, sobra: caixa, metasCl };
+  const totCompra = linhas.filter(l => l.o.valor > 0).reduce((s, l) => s + l.o.valor, 0);
+  const totVenda  = linhas.filter(l => l.o.valor < 0).reduce((s, l) => s - l.o.valor, 0);
+  $('ap-resultado').innerHTML = `<div class="ap-res">` + (linhas.length ? linhas.map(l => {
+    const compra = l.o.valor > 0, nome = esc(l.a.ticker || l.a.nome);
+    const qtd = l.o.cotas != null ? `${Math.abs(l.o.cotas)} ${Math.abs(l.o.cotas) === 1 ? 'cota' : 'cotas'} · ` : 'em R$ · ';
+    return `<div class="ap-item"><div class="l1"><b>${nome}</b><span class="ap-tag ${compra ? 'c' : 'v'}">${compra ? 'Comprar' : 'Vender'}</span></div>
+      <div class="l1" style="margin-top:4px"><span class="meta">${qtd}${l.o.cotas != null ? 'R$ ' + formatCurrency(precoDe(l.a)) + ' cada' : NOME_TIPO[l.a.tipo]}</span>${vLR(Math.abs(l.o.valor))}</div>
+      <div class="l2">Peso na carteira: ${pctFmt(l.antesPct)} → ${pctFmt(l.depoisPct)} · meta ${pctFmt(l.metaPct)}</div></div>`;
+  }).join('') : '<div class="empty">A carteira já está dentro das metas.</div>') +
+  `<div class="result-line"><span class="lbl">Total a comprar</span><b>${vLR(totCompra)}</b></div>` +
+  (totVenda ? `<div class="result-line"><span class="lbl">Total a vender</span><b style="color:var(--bad)">${vLR(totVenda)}</b></div>` : '') +
+  `<div class="result-line"><span class="lbl">Sobra em caixa</span><b>${vLR(caixa)}</b></div>
+   <p class="sub">Simulação com as cotações da última atualização (atraso de ~30 min). Não considera corretagem, impostos ou a qualidade de cada ativo — a decisão é sua.</p></div>`;
+}
+
+/* ---------- Relatório ---------- */
+function linhasRelatorio(){
+  const total = ativosCarteira.reduce((s, a) => s + valorAtual(a), 0);
+  return ativosCarteira.map(a => {
+    const v = valorAtual(a);
+    return { tipo: NOME_TIPO[a.tipo] || a.tipo, ativo: a.ticker || a.nome, conta: a.conta, qtd: a.ticker ? a.qtd : null, pm: a.ticker ? a.pm : null,
+             cotacao: precoDe(a), investido: a.valor, atual: v, pct: total ? v / total * 100 : 0,
+             res: v - a.valor, resPct: a.valor ? (v - a.valor) / a.valor * 100 : 0, varDia: a.varDia };
+  }).sort((x, y) => x.tipo.localeCompare(y.tipo) || y.atual - x.atual);
+}
+function textoRelatorio(){
+  const L = linhasRelatorio(), total = L.reduce((s, l) => s + l.atual, 0);
+  const n = v => v == null ? '-' : formatCurrency(v);
+  let t = `CARTEIRA DE INVESTIMENTOS — ${formatDate(hojeStr())}\nValor total: R$ ${n(total)}\n\nPOR CLASSE (valor atual | % da carteira | meta)\n`;
+  classesNaCarteira().forEach(c => {
+    const v = ativosCarteira.filter(a => a.tipo === c).reduce((s, a) => s + valorAtual(a), 0);
+    t += `- ${NOME_TIPO[c]}: R$ ${n(v)} | ${pctFmt(total ? v / total * 100 : 0)} | meta ${metas.classes[c] != null ? pctFmt(metas.classes[c]) : '-'}\n`;
+  });
+  t += `\nPOR ATIVO (classe | ativo | qtd un | preço médio R$ | cotação R$ | investido R$ | valor atual R$ | % carteira | resultado R$ | resultado % | variação do dia %)\n`;
+  L.forEach(l => t += `- ${l.tipo} | ${l.ativo} | ${l.qtd ?? '-'} | ${n(l.pm)} | ${n(l.cotacao)} | ${n(l.investido)} | ${n(l.atual)} | ${pctFmt(l.pct)} | ${n(l.res)} | ${pctFmt(l.resPct)} | ${l.varDia == null ? '-' : pctFmt(l.varDia)}\n`);
+  const pesos = Object.entries(metas.pesos);
+  if(pesos.length) t += `\nPESOS DENTRO DA CLASSE (padrão 1): ${pesos.map(([k, v]) => k + '=' + v).join(', ')}\n`;
+  if(ultimaSimulacao){
+    const s = ultimaSimulacao;
+    t += `\nSIMULAÇÃO (${s.modo === 'comprar' ? 'só comprar' : 'rebalancear'}, aporte R$ ${n(s.aporte)})\n`;
+    s.linhas.forEach(l => t += `- ${l.o.valor > 0 ? 'Comprar' : 'Vender'} ${l.a.ticker || l.a.nome}: ${l.o.cotas != null ? Math.abs(l.o.cotas) + ' cotas, ' : ''}R$ ${n(Math.abs(l.o.valor))} (${pctFmt(l.antesPct)} → ${pctFmt(l.depoisPct)}, meta ${pctFmt(l.metaPct)})\n`);
+    t += `Sobra: R$ ${n(s.sobra)}\n`;
+  }
+  return t;
+}
+async function copiarRelatorio(){
+  const t = textoRelatorio();
+  try{ await navigator.clipboard.writeText(t); toast('Relatório copiado. É só colar na IA.', 'ok'); }
+  catch(_){
+    const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast('Relatório copiado.', 'ok'); }catch(e){ toast('Não foi possível copiar.', 'err'); }
+    ta.remove();
+  }
+}
+function baixarCsv(){
+  const n = v => v == null ? '' : (Number(v).toFixed(2)).replace('.', ',');
+  const cab = ['Classe','Ativo','Conta','Quantidade (un)','Preço médio (R$)','Cotação (R$)','Investido (R$)','Valor atual (R$)','% da carteira','Resultado (R$)','Resultado (%)','Variação do dia (%)'];
+  const linhas = linhasRelatorio().map(l => [l.tipo, l.ativo, l.conta, l.qtd ?? '', n(l.pm), n(l.cotacao), n(l.investido), n(l.atual), n(l.pct), n(l.res), n(l.resPct), l.varDia == null ? '' : n(l.varDia)]);
+  const csv = '\ufeff' + [cab, ...linhas].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `carteira-${hojeStr()}.csv`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
 /* Padrão de código da B3: 4 letras + 1 ou 2 números (ITUB4, MXRF11, AAPL34, ITUB4F) */
 function ehCodigoB3(txt){ return /^[A-Z]{4}\d{1,2}F?$/.test(String(txt || '').trim().toUpperCase()); }
 function somaAtivosConta(c){
@@ -2636,6 +2911,7 @@ function somaAtivosConta(c){
 }
 function calcInvestido(){
   const tk = ehCodigoB3($('ativo-nome').value);
+  if(!$('ativo-tipo').dataset.manual) $('ativo-tipo').value = tipoProvavel(tk ? $('ativo-nome').value.trim().toUpperCase() : '');
   $('ativo-b3-hint').innerHTML = tk
     ? '<b style="color:var(--ok)">Código da B3 reconhecido</b> — a cotação vem automática. Informe quantidade e preço médio.'
     : 'Digite o código da B3 (ITUB4, MXRF11) para ter cotação. Outros nomes (CDB, previdência) usam o valor investido.';
@@ -2658,7 +2934,9 @@ async function atualizarCotacoes(manual){
   try{
     const { data, error } = await getDbClient().functions.invoke('cotacoes', { body: {} });
     if(error) throw error;
+    if(data && !data.dolar){ $('mk-dolar').textContent = 'indisponível'; $('mk-dolar-var').innerHTML = ''; }
     if(data && data.dolar){
+      $('mk-dolar-lbl').textContent = data.dolar.fonte === 'PTAX' ? 'Dólar PTAX' : 'Dólar comercial';
       $('mk-dolar').textContent = 'R$ ' + data.dolar.valor.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
       const v = data.dolar.variacao;
       $('mk-dolar-var').innerHTML = tendencia(v);
